@@ -1,16 +1,12 @@
-export enum ActionType {
+export const ActionType = {
+  Research: "research",
+  Build: "build",
+  Diplomacy: "diplomacy",
+  Military: "military",
+  Economy: "economy",
+  Intelligence: "intelligence",
+  Politics: "politics"
+} as const;
 
-  Research = "research",
-
-  Build = "build",
-
-  Diplomacy = "diplomacy",
-
-  Military = "military",
-
-  Economy = "economy",
-
-  Intelligence = "intelligence",
-
-  Politics = "politics"
-}
+export type ActionType =
+  (typeof ActionType)[keyof typeof ActionType];
