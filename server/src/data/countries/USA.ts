@@ -12,11 +12,9 @@ export const USA = createCountry({
 
   color: "#2563eb",
 
-  capitalRegionId: 2,
+  capitalRegionId: 8,
 
   population: 140_000_000,
-
-  regionIds: [],
 
   economyType: EconomyType.Market,
 
@@ -101,7 +99,18 @@ export const USA = createCountry({
 
     nuclearWarheads: 2,
 
-    units: []
+    units: [],
+
+    equipment: {
+      rifles: 10000000,
+      trucks: 500000,
+      tanks: 30000,
+      fighters: 15000,
+      bombers: 8000,
+      artillery: 50000,
+      destroyers: 200,
+      submarines: 150
+    }
   },
 
   diplomacy: {

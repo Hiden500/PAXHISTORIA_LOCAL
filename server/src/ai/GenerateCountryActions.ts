@@ -14,14 +14,13 @@ export function generateCountryActions(
     const goal =
       country.goals[0];
 
-    actions.push({
-
-      countryId: country.id,
-
-      category: "politics",
-
-      description: `Стремиться к достижению цели: ${goal.title}`
-    });
+    if (goal) {
+      actions.push({
+        countryId: country.id,
+        category: "politics",
+        description: `Стремиться к достижению цели: ${goal.title}`
+      });
+    }
   }
 
   return actions;

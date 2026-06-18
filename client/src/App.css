@@ -1,184 +1,633 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* ==========================================
+   PAX HISTORIA - GLOBAL STYLES
+   ========================================== */
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #0f1923;
+  color: #e2e8f0;
+  overflow: hidden;
 }
 
-#center {
+#root {
+  height: 100vh;
+}
+
+/* ==========================================
+   SCENARIO SELECTOR
+   ========================================== */
+
+.scenario-selector {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.scenario-selector h1 {
+  text-align: center;
+  font-size: 3rem;
+  margin-bottom: 2rem;
+  color: #f1f5f9;
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.scenario-selector h2 {
+  margin-bottom: 1rem;
+  color: #94a3b8;
+}
+
+.scenario-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.scenario-card {
+  border: 2px solid #1e293b;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #1a2533;
+}
+
+.scenario-card:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.scenario-card.selected {
+  border-color: #3b82f6;
+  background-color: #1a2744;
+}
+
+.scenario-card h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  color: #f1f5f9;
+}
+
+.scenario-period {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.scenario-era {
+  color: #3b82f6;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.scenario-description {
+  color: #94a3b8;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.country-selection {
+  margin-top: 2rem;
+}
+
+.country-list {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.country-button {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #1a2533;
+  color: #e2e8f0;
+  font-size: 1rem;
+}
+
+.country-button:hover {
+  border-color: #3b82f6;
+}
+
+.country-button.selected {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.start-game-button {
+  display: block;
+  margin: 0 auto;
+  padding: 1rem 3rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.start-game-button:hover {
+  background-color: #059669;
+}
+
+/* ==========================================
+   LOADING
+   ========================================== */
+
+.loading {
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: #64748b;
+  gap: 1rem;
 }
 
-#next-steps {
+/* ==========================================
+   GAME VIEW - MAIN LAYOUT
+   ========================================== */
+
+.game-view {
+  height: 100vh;
   display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+  flex-direction: column;
+  background: #0f1923;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(180deg, #1a2533 0%, #0f1923 100%);
+  border-bottom: 1px solid #1e293b;
+  height: 48px;
+  flex-shrink: 0;
 }
 
-#next-steps ul {
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.game-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.back-button {
+  padding: 0.35rem 0.75rem;
+  background-color: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background-color: #334155;
+  color: #f1f5f9;
+}
+
+.game-date {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #3b82f6;
+  font-family: 'Courier New', monospace;
+}
+
+.game-era {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.next-turn-button {
+  padding: 0.4rem 1rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.next-turn-button:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.next-turn-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.game-error {
+  color: #ef4444;
+  font-size: 0.8rem;
+}
+
+.selector-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.hint {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* ==========================================
+   GAME CONTENT - THREE PANEL LAYOUT
+   ========================================== */
+
+.game-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.sidebar {
+  width: 320px;
+  min-width: 320px;
+  background: #111d2b;
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-left {
+  border-right: 1px solid #1e293b;
+}
+
+.sidebar-right {
+  border-left: 1px solid #1e293b;
+}
+
+.map-container {
+  flex: 1;
+  position: relative;
+}
+
+/* ==========================================
+   SIDEBAR PANELS
+   ========================================== */
+
+.panel-section {
+  background: #152233;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.panel-section h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-section h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================
+   PLAYER PANEL
+   ========================================== */
+
+.player-panel h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  color: #f1f5f9;
+}
+
+.stat-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.stat-list div {
+  padding: 0.3rem 0;
+}
+
+.stat-list dt {
+  font-size: 0.65rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-list dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+
+/* ==========================================
+   REGION LIST
+   ========================================== */
+
+.region-list {
   list-style: none;
   padding: 0;
+  margin: 0;
+}
+
+.region-list-item {
+  padding: 0.6rem;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  margin-bottom: 0.4rem;
+  cursor: pointer;
+  transition: all 0.15s;
   display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+.region-list-item:hover {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
 }
 
-.ticks {
-  position: relative;
+.region-list-item.selected {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.region-population {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.region-resources {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.resource-tag {
+  display: inline-block;
+  background: #1a2744;
+  color: #60a5fa;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  border: 1px solid #1e3a5f;
+}
+
+/* ==========================================
+   RESEARCH LIST
+   ========================================== */
+
+.research-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.research-list li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.research-list li:last-child {
+  border-bottom: none;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #1e293b;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  transition: width 0.3s;
+}
+
+/* ==========================================
+   RESOURCE LIST
+   ========================================== */
+
+.resource-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.resource-list li {
+  padding: 0.2rem 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ==========================================
+   WORLD TABLE
+   ========================================== */
+
+.world-table {
   width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.world-table th,
+.world-table td {
+  padding: 0.3rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid #1e293b;
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.world-table th {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.world-table td {
+  color: #cbd5e1;
+}
+
+.player-row {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.country-color {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+.country-color-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.positive {
+  color: #10b981;
+}
+
+.negative {
+  color: #ef4444;
+}
+
+/* ==========================================
+   REGION DETAIL
+   ========================================== */
+
+.region-detail .stat-list {
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+.region-detail .stat-list dt {
+  font-size: 0.6rem;
+}
+
+.region-detail .stat-list dd {
+  font-size: 0.8rem;
+}
+
+/* ==========================================
+   MAPLIBRE POPUP OVERRIDES
+   ========================================== */
+
+.maplibregl-popup-content {
+  background: #152233 !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #1e293b !important;
+  border-radius: 6px !important;
+  padding: 0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #152233 !important;
+}
+
+.maplibregl-popup-close-button {
+  color: #64748b !important;
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+}
+
+.maplibregl-popup-close-button:hover {
+  color: #f1f5f9 !important;
+  background: transparent !important;
+}
+
+.region-popup {
+  padding: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.popup-title {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #f1f5f9;
+}
+
+.popup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.popup-section {
+  padding: 0.2rem 0;
+}
+
+.popup-resources {
+  list-style: none;
+  padding: 0;
+  margin: 0.2rem 0 0 0;
+}
+
+.popup-resources li {
+  padding: 0.1rem 0;
+  color: #60a5fa;
+  font-size: 0.75rem;
+}
+
+/* ==========================================
+   SCROLLBAR
+   ========================================== */
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }

@@ -10,4 +10,21 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "../shared/src")
     },
   },
+
+  server: {
+    proxy: {
+      "/game": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/player": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/scenarios": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
+  },
 });

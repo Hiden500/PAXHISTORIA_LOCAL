@@ -16,8 +16,6 @@ export const USSR = createCountry({
 
   population: 170_000_000,
 
-  regionIds: [],
-
   economyType: EconomyType.Planned,
 
   economy: {

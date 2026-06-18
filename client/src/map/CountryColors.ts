@@ -1,13 +1,21 @@
-export const CountryColors:
-Record<string, string> = {
+import type { Country } from '@shared/types/Country';
 
-  ussr: "#cc0000",
+/**
+ * Создает карту цветов стран из игровых данных
+ */
+export function createCountryColorMap(countries: Country[]): Map<string, string> {
+  const colorMap = new Map<string, string>();
+  
+  countries.forEach(country => {
+    colorMap.set(country.id, country.color);
+  });
 
-  usa: "#2a52be",
+  return colorMap;
+}
 
-  uk: "#8b0000",
-
-  france: "#0055ff",
-
-  china: "#cc3300"
-};
+/**
+ * Стандартные цвета для нейтральных территорий
+ */
+export const NEUTRAL_COLOR = '#808080';
+export const SELECTED_COLOR = '#FFD700';
+export const HOVER_COLOR = '#FFFFFF';

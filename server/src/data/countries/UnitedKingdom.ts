@@ -15,8 +15,6 @@ export const UK = createCountry({
 
   population: 50_000_000,
 
-  regionIds: [],
-
   economyType: EconomyType.Market,
 
   economy: {
@@ -100,8 +98,18 @@ export const UK = createCountry({
 
     nuclearWarheads: 0,
 
-    units: []
+    units: [],
 
+    equipment: {
+      rifles: 500000,
+      trucks: 50000,
+      tanks: 1000,
+      fighters: 800,
+      bombers: 300,
+      artillery: 5000,
+      destroyers: 60,
+      submarines: 30
+    }
   },
 
   diplomacy: {
