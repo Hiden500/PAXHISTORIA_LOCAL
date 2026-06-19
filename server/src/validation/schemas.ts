@@ -25,7 +25,7 @@ export const updateBudgetSchema = z.object({
   infrastructureSpending: z.number().min(0),
   welfareSpending: z.number().min(0)
 }).refine(
-  (data: any) => {
+  (data) => {
     const total = data.militarySpending + data.researchSpending +
                   data.educationSpending + data.infrastructureSpending +
                   data.welfareSpending;
@@ -49,7 +49,7 @@ export const startResearchSchema = z.object({
 export const playerActionSchema = z.object({
   type: z.enum(["build_factory", "build_mine", "build_infrastructure", "recruit_units"]),
   regionId: z.number().int().positive(),
-  parameters: z.record(z.string(), z.any()).optional()
+  parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional()
 });
 
 /**

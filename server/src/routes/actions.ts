@@ -3,6 +3,7 @@ import { GameService } from "../services/GameService";
 import { playerActionSchema } from "../validation/schemas";
 import { ValidationError, GameError } from "../errors/AppError";
 import { getGame, setGame } from "../game/GameStore";
+import { type PlayerAction } from "@shared/types/actions/PlayerAction";
 
 const router = express.Router();
 const gameService = new GameService();
@@ -40,19 +41,15 @@ router.post("/actions", (req, res) => {
       recruit_units: "Формирование новых военных подразделений"
     };
 
-    // Добавляем действие в список действий игрока
-    const newAction: any = {
+    const newAction: PlayerAction = {
       id: `action-${Date.now()}`,
       type: action.type,
       regionId: action.regionId,
-      title: titles[action.type] || "Действие",
-      description: descriptions[action.type] || "",
-      createdAt: new Date().toISOString()
+      title: titles[action.type] ?? "Действие",
+      description: descriptions[action.type] ?? "",
+      createdAt: new Date().toISOString(),
+      ...(action.parameters ? { parameters: action.parameters } : {}),
     };
-
-    if (action.parameters) {
-      newAction.parameters = action.parameters;
-    }
 
     game.playerActions.push(newAction);
 

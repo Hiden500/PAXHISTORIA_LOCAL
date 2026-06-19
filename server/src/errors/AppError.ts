@@ -17,7 +17,7 @@ export class AppError extends Error {
  * Ошибка валидации входных данных.
  */
 export class ValidationError extends AppError {
-  constructor(message: string, public details?: any) {
+  constructor(message: string, public details?: unknown) {
     super(message, "VALIDATION_ERROR", 400);
   }
 }

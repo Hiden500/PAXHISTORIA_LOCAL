@@ -6,6 +6,6 @@ export function getGame(): GameState | null {
   return currentGame;
 }
 
-export function setGame(game: GameState): void {
+export function setGame(game: GameState | null): void {
   currentGame = game;
 }

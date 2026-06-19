@@ -1,5 +1,6 @@
 import { type GameState } from "@shared/types/GameState";
 import { createGame } from "../game/CreateGame";
+import { type ScenarioRegistry } from "../scenarios/ScenarioRegistry";
 import { simulateMonth } from "../simulation/SimulationEngine";
 import { getGame, setGame } from "../game/GameStore";
 
@@ -12,7 +13,7 @@ export class GameService {
    * Создаёт новую игру по сценарию.
    */
   createGame(scenarioId: string, playerCountryId: string): GameState {
-    const game = createGame(scenarioId as any, playerCountryId);
+    const game = createGame(scenarioId as keyof typeof ScenarioRegistry, playerCountryId);
     setGame(game);
     return game;
   }
@@ -42,6 +43,6 @@ export class GameService {
    * Удаляет игру из хранилища.
    */
   deleteGame(): void {
-    setGame(null as any);
+    setGame(null);
   }
 }
