@@ -2367,7 +2367,7 @@
   "TUR": {
     "targetRegions": 15,
     "mapping": {
-      "Region_1": [
+      "EU_Region_1": [
         "TUR-4839",
         "TUR-2298",
         "TUR-3044",
@@ -2375,7 +2375,7 @@
         "TUR-4840",
         "TUR-2307"
       ],
-      "Region_2": [
+      "EU_Region_2": [
         "TUR-3048",
         "TUR-2241",
         "TUR-2240",
@@ -2383,7 +2383,7 @@
         "TUR-3041",
         "TUR-3017"
       ],
-      "Region_3": [
+      "EU_Region_3": [
         "TUR-4841",
         "TUR-3016",
         "TUR-2289",

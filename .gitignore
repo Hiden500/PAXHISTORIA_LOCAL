@@ -6,6 +6,7 @@ build
 
 # Карта мира
 *.geojson
+!client/public/*.geojson
 *.7z
 
 # Логи
