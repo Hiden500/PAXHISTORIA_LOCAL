@@ -1,11 +1,33 @@
 import { type Country } from "@shared/types/Country";
 import { type Region } from "@shared/types/map/Region";
+import { type UpdateBudgetInput } from "../validation/schemas";
 
 /**
  * Сервис для операций со странами.
  * Содержит бизнес-логику для работы со странами.
  */
 export class CountryService {
+  /**
+   * Обновляет распределение бюджета страны и пересчитывает баланс.
+   */
+  updateBudget(country: Country, budgetUpdate: UpdateBudgetInput): Country["economy"] {
+    const { economy } = country;
+
+    economy.militarySpending = budgetUpdate.militarySpending;
+    economy.researchSpending = budgetUpdate.researchSpending;
+    economy.educationSpending = budgetUpdate.educationSpending;
+    economy.infrastructureSpending = budgetUpdate.infrastructureSpending;
+    economy.welfareSpending = budgetUpdate.welfareSpending;
+
+    const income = economy.taxRevenue + economy.exportIncome + economy.stateEnterpriseIncome + economy.otherIncome;
+    const expenses = economy.militarySpending + economy.researchSpending + economy.educationSpending +
+      economy.infrastructureSpending + economy.welfareSpending + economy.debtInterest + economy.otherExpenses;
+
+    economy.budgetBalance = income - expenses;
+
+    return economy;
+  }
+
   /**
    * Находит страну по ID.
    */

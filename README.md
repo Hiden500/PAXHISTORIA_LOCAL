@@ -1,0 +1,38 @@
+# Geopolis
+
+Браузерная глобальная стратегия с альтернативной историей (1836–2100), личный некоммерческий проект.
+
+Подробности замысла, архитектуры и правил работы над проектом — в [`AGENTS.md`](AGENTS.md) и [`docs/`](docs/). Журнал архитектурных решений — в [`docs/DECISIONS.md`](docs/DECISIONS.md).
+
+## Структура репозитория
+
+```
+client/   — React + TypeScript + Vite, карта на MapLibre GL JS
+server/   — Node.js + TypeScript, игровой движок и симуляция
+shared/   — общие типы и утилиты для client/server
+docs/     — правила, архитектура, дизайн-документы
+scripts/  — Python-пайплайн генерации карты/регионов (см. docs/WORLD.md)
+```
+
+Монорепо без общего workspace-конфига — `client/`, `server/`, `shared/` — три независимых `package.json`, зависимости ставятся в каждой папке отдельно.
+
+## Запуск
+
+```
+cd server && npm install && npm run dev
+cd client && npm install && npm run dev
+```
+
+Сервер поднимается на порту, заданном в `server/src/index.ts` (Express). Клиент — Vite dev server, проксирует `/game`, `/player`, `/scenarios` на сервер (см. `client/vite.config.ts`).
+
+## Тесты
+
+```
+cd server && npm run test
+```
+
+У клиента тестовой инфраструктуры пока нет (известный пробел, см. `docs/DECISIONS.md`).
+
+## Перед началом работы
+
+Прочитать `AGENTS.md` — он описывает обязательные правила работы над проектом (язык ответов, приоритет документации, запрет на изменения без явного решения и т.д.).

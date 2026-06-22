@@ -56,6 +56,10 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   background: #1a2533;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  width: 100%;
 }
 
 .scenario-card:hover {

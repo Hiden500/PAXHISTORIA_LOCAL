@@ -40,6 +40,7 @@ export function ActionPanel({ actions, regions, onCreateAction, onDeleteAction }
         <h3>Создать действие</h3>
         <div className="action-form">
           <select
+            aria-label="Тип действия"
             value={selectedActionType}
             onChange={(e) => setSelectedActionType(e.target.value)}
           >
@@ -51,11 +52,12 @@ export function ActionPanel({ actions, regions, onCreateAction, onDeleteAction }
           </select>
 
           <select
+            aria-label="Регион"
             value={selectedRegionId !== null ? selectedRegionId.toString() : ""}
             onChange={(e) => setSelectedRegionId(Number(e.target.value))}
             disabled={!selectedActionType}
           >
-            <option value="">Выберите регион...</option>
+            <option value="">{regions.length === 0 ? "Нет своих регионов" : "Выберите регион..."}</option>
             {regions.map((region) => (
               <option key={region.id} value={region.id}>
                 {region.name}
@@ -86,6 +88,7 @@ export function ActionPanel({ actions, regions, onCreateAction, onDeleteAction }
                   <button
                     onClick={() => handleDeleteAction(action.id)}
                     className="small danger"
+                    aria-label={`Удалить действие: ${action.title}`}
                   >
                     Удалить
                   </button>

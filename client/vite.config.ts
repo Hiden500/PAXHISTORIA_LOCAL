@@ -17,11 +17,19 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: true,
       },
-      "/player": {
+      "/scenarios": {
         target: "http://localhost:3000",
         changeOrigin: true,
       },
-      "/scenarios": {
+      "/budget": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/research": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/actions": {
         target: "http://localhost:3000",
         changeOrigin: true,
       },

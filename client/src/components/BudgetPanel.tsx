@@ -1,44 +1,55 @@
 import { useState } from "react";
 import { type Country } from "@shared/types/Country";
 
+interface BudgetFormState {
+  militarySpending: number;
+  researchSpending: number;
+  educationSpending: number;
+  infrastructureSpending: number;
+  welfareSpending: number;
+}
+
 interface Props {
   country: Country;
-  onUpdateBudget: (budget: {
-    militarySpending: number;
-    researchSpending: number;
-    educationSpending: number;
-    infrastructureSpending: number;
-    welfareSpending: number;
-  }) => void;
+  onUpdateBudget: (budget: BudgetFormState) => void;
+}
+
+function budgetFromCountry(country: Country): BudgetFormState {
+  return {
+    militarySpending: country.economy.militarySpending,
+    researchSpending: country.economy.researchSpending,
+    educationSpending: country.economy.educationSpending,
+    infrastructureSpending: country.economy.infrastructureSpending,
+    welfareSpending: country.economy.welfareSpending,
+  };
 }
 
 export function BudgetPanel({ country, onUpdateBudget }: Props) {
-  const [militarySpending, setMilitarySpending] = useState(country.economy.militarySpending);
-  const [researchSpending, setResearchSpending] = useState(country.economy.researchSpending);
-  const [educationSpending, setEducationSpending] = useState(country.economy.educationSpending);
-  const [infrastructureSpending, setInfrastructureSpending] = useState(country.economy.infrastructureSpending);
-  const [welfareSpending, setWelfareSpending] = useState(country.economy.welfareSpending);
+  const [budget, setBudget] = useState<BudgetFormState>(() => budgetFromCountry(country));
 
-  const totalExpenses = militarySpending + researchSpending + educationSpending + infrastructureSpending + welfareSpending;
-  const income = country.economy.taxRevenue + country.economy.exportIncome + country.economy.stateEnterpriseIncome + country.economy.otherIncome;
+  const setField = (field: keyof BudgetFormState) => (value: number) => {
+    setBudget(prev => ({ ...prev, [field]: value }));
+  };
+
+  const totalExpenses =
+    budget.militarySpending +
+    budget.researchSpending +
+    budget.educationSpending +
+    budget.infrastructureSpending +
+    budget.welfareSpending;
+  const income =
+    country.economy.taxRevenue +
+    country.economy.exportIncome +
+    country.economy.stateEnterpriseIncome +
+    country.economy.otherIncome;
   const balance = income - totalExpenses;
 
   const handleSave = () => {
-    onUpdateBudget({
-      militarySpending,
-      researchSpending,
-      educationSpending,
-      infrastructureSpending,
-      welfareSpending
-    });
+    onUpdateBudget(budget);
   };
 
   const handleReset = () => {
-    setMilitarySpending(country.economy.militarySpending);
-    setResearchSpending(country.economy.researchSpending);
-    setEducationSpending(country.economy.educationSpending);
-    setInfrastructureSpending(country.economy.infrastructureSpending);
-    setWelfareSpending(country.economy.welfareSpending);
+    setBudget(budgetFromCountry(country));
   };
 
   return (
@@ -68,78 +79,83 @@ export function BudgetPanel({ country, onUpdateBudget }: Props) {
 
       <div className="budget-sliders">
         <div className="slider-group">
-          <label>
-            Военные расходы: {Math.round(militarySpending).toLocaleString("ru-RU")}
+          <label htmlFor="budget-military">
+            Военные расходы: {Math.round(budget.militarySpending).toLocaleString("ru-RU")}
           </label>
           <input
+            id="budget-military"
             type="range"
             min="0"
             max={country.economy.gdp * 0.3}
             step={1000}
-            value={militarySpending}
-            onChange={(e) => setMilitarySpending(Number(e.target.value))}
+            value={budget.militarySpending}
+            onChange={(e) => setField("militarySpending")(Number(e.target.value))}
           />
         </div>
 
         <div className="slider-group">
-          <label>
-            Исследования: {Math.round(researchSpending).toLocaleString("ru-RU")}
+          <label htmlFor="budget-research">
+            Исследования: {Math.round(budget.researchSpending).toLocaleString("ru-RU")}
           </label>
           <input
+            id="budget-research"
             type="range"
             min="0"
             max={country.economy.gdp * 0.2}
             step={1000}
-            value={researchSpending}
-            onChange={(e) => setResearchSpending(Number(e.target.value))}
+            value={budget.researchSpending}
+            onChange={(e) => setField("researchSpending")(Number(e.target.value))}
           />
         </div>
 
         <div className="slider-group">
-          <label>
-            Образование: {Math.round(educationSpending).toLocaleString("ru-RU")}
+          <label htmlFor="budget-education">
+            Образование: {Math.round(budget.educationSpending).toLocaleString("ru-RU")}
           </label>
           <input
+            id="budget-education"
             type="range"
             min="0"
             max={country.economy.gdp * 0.2}
             step={1000}
-            value={educationSpending}
-            onChange={(e) => setEducationSpending(Number(e.target.value))}
+            value={budget.educationSpending}
+            onChange={(e) => setField("educationSpending")(Number(e.target.value))}
           />
         </div>
 
         <div className="slider-group">
-          <label>
-            Инфраструктура: {Math.round(infrastructureSpending).toLocaleString("ru-RU")}
+          <label htmlFor="budget-infrastructure">
+            Инфраструктура: {Math.round(budget.infrastructureSpending).toLocaleString("ru-RU")}
           </label>
           <input
+            id="budget-infrastructure"
             type="range"
             min="0"
             max={country.economy.gdp * 0.15}
             step={1000}
-            value={infrastructureSpending}
-            onChange={(e) => setInfrastructureSpending(Number(e.target.value))}
+            value={budget.infrastructureSpending}
+            onChange={(e) => setField("infrastructureSpending")(Number(e.target.value))}
           />
         </div>
 
         <div className="slider-group">
-          <label>
-            Социальные программы: {Math.round(welfareSpending).toLocaleString("ru-RU")}
+          <label htmlFor="budget-welfare">
+            Социальные программы: {Math.round(budget.welfareSpending).toLocaleString("ru-RU")}
           </label>
           <input
+            id="budget-welfare"
             type="range"
             min="0"
             max={country.economy.gdp * 0.15}
             step={1000}
-            value={welfareSpending}
-            onChange={(e) => setWelfareSpending(Number(e.target.value))}
+            value={budget.welfareSpending}
+            onChange={(e) => setField("welfareSpending")(Number(e.target.value))}
           />
         </div>
       </div>
 
       {balance < 0 && (
-        <div className="budget-warning">
+        <div className="budget-warning" role="alert">
           ⚠️ Дефицит бюджета: {Math.round(Math.abs(balance)).toLocaleString("ru-RU")}
         </div>
       )}

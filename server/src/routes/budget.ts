@@ -12,7 +12,7 @@ const countryService = new CountryService();
 /**
  * Обновляет бюджет страны.
  */
-router.put("/budget", (req, res) => {
+router.put("/", (req, res) => {
   try {
     const game = getGame();
     if (!game) {
@@ -33,31 +33,10 @@ router.put("/budget", (req, res) => {
       throw new CountryError("Player country not found");
     }
 
-    // Обновляем бюджет
-    playerCountry.economy.militarySpending = budgetUpdate.militarySpending;
-    playerCountry.economy.researchSpending = budgetUpdate.researchSpending;
-    playerCountry.economy.educationSpending = budgetUpdate.educationSpending;
-    playerCountry.economy.infrastructureSpending = budgetUpdate.infrastructureSpending;
-    playerCountry.economy.welfareSpending = budgetUpdate.welfareSpending;
-
-    // Пересчитываем баланс бюджета
-    const income = playerCountry.economy.taxRevenue + 
-                  playerCountry.economy.exportIncome + 
-                  playerCountry.economy.stateEnterpriseIncome + 
-                  playerCountry.economy.otherIncome;
-
-    const expenses = playerCountry.economy.militarySpending + 
-                     playerCountry.economy.researchSpending + 
-                     playerCountry.economy.educationSpending + 
-                     playerCountry.economy.infrastructureSpending + 
-                     playerCountry.economy.welfareSpending + 
-                     playerCountry.economy.debtInterest + 
-                     playerCountry.economy.otherExpenses;
-
-    playerCountry.economy.budgetBalance = income - expenses;
+    const economy = countryService.updateBudget(playerCountry, budgetUpdate);
 
     setGame(game);
-    res.json({ success: true, budget: playerCountry.economy });
+    res.json({ success: true, budget: economy });
   } catch (error) {
     if (error instanceof ValidationError) {
       res.status(400).json({ error: error.message, details: error.details });
@@ -72,7 +51,7 @@ router.put("/budget", (req, res) => {
 /**
  * Получает текущий бюджет страны.
  */
-router.get("/budget", (req, res) => {
+router.get("/", (req, res) => {
   try {
     const game = getGame();
     if (!game) {
