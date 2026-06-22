@@ -5,7 +5,15 @@ import { BudgetPanel } from "./BudgetPanel";
 import { ResearchPanel } from "./ResearchPanel";
 import { ActionPanel } from "./ActionPanel";
 import { MapView } from "../map/MapView";
-import { nextTurn } from "../api/gameApi";
+import {
+  nextTurn,
+  updateBudget,
+  startResearch,
+  stopResearch,
+  createAction,
+  deleteAction,
+  type BudgetUpdate,
+} from "../api/gameApi";
 
 interface GameViewProps {
   game: GameState;
@@ -40,23 +48,11 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
     }
   };
 
-  const handleUpdateBudget = async (budget: {
-    militarySpending: number;
-    researchSpending: number;
-    educationSpending: number;
-    infrastructureSpending: number;
-    welfareSpending: number;
-  }) => {
+  const handleUpdateBudget = async (budget: BudgetUpdate) => {
     try {
-      const response = await fetch("http://localhost:3000/budget", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(budget)
-      });
-      if (response.ok) {
-        const updated = await nextTurn();
-        onGameUpdate(updated);
-      }
+      await updateBudget(budget);
+      const updated = await nextTurn();
+      onGameUpdate(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка обновления бюджета");
     }
@@ -64,15 +60,9 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
 
   const handleStartResearch = async (projectId: string) => {
     try {
-      const response = await fetch("http://localhost:3000/research/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId })
-      });
-      if (response.ok) {
-        const updated = await nextTurn();
-        onGameUpdate(updated);
-      }
+      await startResearch(projectId);
+      const updated = await nextTurn();
+      onGameUpdate(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка запуска исследования");
     }
@@ -80,13 +70,9 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
 
   const handleStopResearch = async (projectId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/research/stop/${projectId}`, {
-        method: "POST"
-      });
-      if (response.ok) {
-        const updated = await nextTurn();
-        onGameUpdate(updated);
-      }
+      await stopResearch(projectId);
+      const updated = await nextTurn();
+      onGameUpdate(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка остановки исследования");
     }
@@ -98,15 +84,9 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
     parameters?: Record<string, unknown>;
   }) => {
     try {
-      const response = await fetch("http://localhost:3000/actions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action)
-      });
-      if (response.ok) {
-        const updated = await nextTurn();
-        onGameUpdate(updated);
-      }
+      await createAction(action);
+      const updated = await nextTurn();
+      onGameUpdate(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка создания действия");
     }
@@ -114,13 +94,9 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
 
   const handleDeleteAction = async (actionId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/actions/${actionId}`, {
-        method: "DELETE"
-      });
-      if (response.ok) {
-        const updated = await nextTurn();
-        onGameUpdate(updated);
-      }
+      await deleteAction(actionId);
+      const updated = await nextTurn();
+      onGameUpdate(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка удаления действия");
     }
@@ -161,7 +137,7 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
           <span className="game-era">{game.era.name}</span>
         </div>
         <div className="header-center">
-          <h1 className="game-title">Pax Historia</h1>
+          <h1 className="game-title">Geopolis</h1>
         </div>
         <div className="header-right">
           {error && <span className="game-error">{error}</span>}
@@ -213,6 +189,7 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
           <MapView
             regions={game.regions}
             countries={game.countries}
+            mapFeatures={game.mapFeatures}
             onRegionClick={handleRegionClick}
             selectedRegionId={selectedRegionId}
           />
@@ -367,7 +344,7 @@ export function GameView({ game, onGameUpdate, onBack }: GameViewProps) {
           {activePanel === "actions" && (
             <ActionPanel
               actions={game.playerActions || []}
-              regions={game.regions}
+              regions={playerRegions}
               onCreateAction={handleCreateAction}
               onDeleteAction={handleDeleteAction}
             />

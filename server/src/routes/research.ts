@@ -1,13 +1,13 @@
 import express from "express";
-import { GameService } from "../services/GameService";
 import { CountryService } from "../services/CountryService";
+import { ResearchService } from "../services/ResearchService";
 import { startResearchSchema } from "../validation/schemas";
 import { ValidationError, GameError, CountryError } from "../errors/AppError";
 import { getGame, setGame } from "../game/GameStore";
 
 const router = express.Router();
-const gameService = new GameService();
 const countryService = new CountryService();
+const researchService = new ResearchService();
 
 /**
  * Запускает исследование технологии.
@@ -33,35 +33,7 @@ router.post("/start", (req, res) => {
       throw new CountryError("Player country not found");
     }
 
-    // Проверяем, что проект ещё не исследуется
-    const existingProject = playerCountry.technology.projects.find(p => p.technologyId === projectId);
-    if (existingProject) {
-      throw new ValidationError("Project already being researched");
-    }
-
-    // Проверяем, что технология ещё не исследована
-    if (playerCountry.researchedTechnologyIds.includes(projectId)) {
-      throw new ValidationError("Technology already researched");
-    }
-
-    // Создаём новый проект
-    const newProject = {
-      id: `project-${Date.now()}`,
-      technologyId: projectId,
-      name: `Research ${projectId}`,
-      domain: "Research",
-      progress: 0,
-      requiredProgress: 100,
-      progressPerMonth: 10,
-      cost: playerCountry.economy.researchSpending,
-      requiredTechnologyIds: [],
-      requiredResources: {},
-      startDate: new Date().toISOString(),
-      estimatedMonths: 10,
-      completed: false
-    };
-
-    playerCountry.technology.projects.push(newProject);
+    const newProject = researchService.startProject(playerCountry, projectId);
     setGame(game);
 
     res.json({ success: true, project: newProject });
@@ -93,12 +65,7 @@ router.post("/stop/:projectId", (req, res) => {
       throw new CountryError("Player country not found");
     }
 
-    const projectIndex = playerCountry.technology.projects.findIndex(p => p.id === projectId);
-    if (projectIndex === -1) {
-      throw new GameError("Project not found");
-    }
-
-    playerCountry.technology.projects.splice(projectIndex, 1);
+    researchService.stopProject(playerCountry, projectId);
     setGame(game);
 
     res.json({ success: true });
@@ -126,7 +93,7 @@ router.get("/active", (req, res) => {
       throw new CountryError("Player country not found");
     }
 
-    res.json(playerCountry.technology.projects);
+    res.json(researchService.getActiveProjects(playerCountry));
   } catch (error) {
     if (error instanceof GameError || error instanceof CountryError) {
       res.status(404).json({ error: error.message });
@@ -151,11 +118,7 @@ router.get("/state", (req, res) => {
       throw new CountryError("Player country not found");
     }
 
-    res.json({
-      domains: playerCountry.technology.domains,
-      researchedIds: playerCountry.researchedTechnologyIds,
-      projects: playerCountry.technology.projects
-    });
+    res.json(researchService.getTechnologyState(playerCountry));
   } catch (error) {
     if (error instanceof GameError || error instanceof CountryError) {
       res.status(404).json({ error: error.message });

@@ -1,10 +1,9 @@
 import { type Country } from "@shared/types/Country";
 import { type Region } from "@shared/types/map/Region";
-import { ResourceType } from "@shared/types/resources/ResourcesType";
-import { RESOURCE_WEIGHTS as resourceWeights } from "@shared/constants/resourceWeights";
+import { RegionEconomyService } from "../../services/RegionEconomyService";
 
 /**
- * Обновлённый EconomyTick с использованием регионов.
+ * Обновлённый EconomyTick с использованием регионов и региональной экономики.
  * Рост ВВП на основе промышленности регионов, инфраструктуры и ресурсов.
  */
 export function economyTick(
@@ -32,13 +31,19 @@ export function economyTick(
   economy.budgetBalance = income - expenses;
   economy.treasury += economy.budgetBalance;
 
+  // Инициализируем региональную экономику если нужно
+  const regionEconomyService = new RegionEconomyService();
+  for (const region of countryRegions) {
+    if (!region.economy) {
+      regionEconomyService.initializeRegionEconomy(region);
+    }
+  }
+
   // Расчёт роста ВВП на основе регионов
-  let totalRegionGdp = 0;
   let avgInfrastructure = 0;
   let avgDevelopment = 0;
 
   if (countryRegions.length > 0) {
-    totalRegionGdp = countryRegions.reduce((sum, r) => sum + r.gdp, 0);
     avgInfrastructure = countryRegions.reduce((sum, r) => sum + r.infrastructure, 0) / countryRegions.length;
     avgDevelopment = countryRegions.reduce((sum, r) => sum + r.development, 0) / countryRegions.length;
   }
@@ -55,9 +60,14 @@ export function economyTick(
   // Итоговый рост
   const growthRate = Math.max(0, baseGrowthRate + infrastructureBonus - deficitPenalty);
 
-  // Применяем рост к ВВП регионов
+  // Применяем рост к ВВП регионов с учётом экономических секторов
   for (const region of countryRegions) {
-    region.gdp *= (1 + growthRate);
+    // Регионы с сильной промышленностью растут быстрее
+    let sectorBonus = 0;
+    if (region.economy) {
+      sectorBonus = region.economy.industry * 0.002 + region.economy.services * 0.001;
+    }
+    region.gdp *= (1 + growthRate + sectorBonus);
   }
 
   // ВВП страны обновится через агрегацию в SimulationEngine
@@ -68,12 +78,4 @@ export function economyTick(
   // Безработица на основе экономического роста
   economy.unemployment += 0.05 * (expenses - income) / economy.gdp;
   economy.unemployment = Math.max(0, economy.unemployment);
-
-  // Ресурсный бонус (для будущего использования)
-  let resourceBonus = 0;
-  for (const resource of Object.values(ResourceType)) {
-    const amount = country.stockpile[resource];
-    const weight = resourceWeights[resource] ?? 0;
-    resourceBonus += amount * weight;
-  }
 }

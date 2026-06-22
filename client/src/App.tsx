@@ -2,6 +2,7 @@ import { useState } from "react";
 import { type GameState } from "@shared/types/GameState";
 import { ScenarioSelector } from "./components/ScenarioSelector";
 import { GameView } from "./components/GameView";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Map1946Viewer } from "./map/Map1946Viewer";
 import { startGame } from "./api/gameApi";
 import "./App.css";
@@ -59,7 +60,11 @@ export default function App() {
   }
 
   if (game) {
-    return <GameView game={game} onGameUpdate={setGame} onBack={handleBack} />;
+    return (
+      <ErrorBoundary onReset={handleBack}>
+        <GameView game={game} onGameUpdate={setGame} onBack={handleBack} />
+      </ErrorBoundary>
+    );
   }
 
   return (

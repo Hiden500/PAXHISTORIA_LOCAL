@@ -17,7 +17,9 @@ export function ScenarioSelector({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadScenarios = () => {
+    setLoading(true);
+    setLoadError(null);
     getScenarios()
       .then(data => {
         setScenarios(data);
@@ -29,6 +31,10 @@ export function ScenarioSelector({
         );
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadScenarios();
   }, []);
 
   const handleStartGame = () => {
@@ -46,6 +52,7 @@ export function ScenarioSelector({
       <div className="loading">
         Ошибка: {loadError}
         <p className="hint">Убедитесь, что сервер запущен (npm run dev в server/)</p>
+        <button onClick={loadScenarios}>Повторить попытку</button>
       </div>
     );
   }
@@ -54,16 +61,18 @@ export function ScenarioSelector({
 
   return (
     <div className="scenario-selector">
-      <h1>Pax Historia</h1>
+      <h1>Geopolis</h1>
       <h2>Выберите сценарий</h2>
 
       {error && <p className="selector-error">{error}</p>}
 
       <div className="scenario-list">
         {scenarios.map(scenario => (
-          <div
+          <button
             key={scenario.id}
+            type="button"
             className={`scenario-card ${selectedScenario === scenario.id ? "selected" : ""}`}
+            aria-pressed={selectedScenario === scenario.id}
             onClick={() => {
               setSelectedScenario(scenario.id);
               setSelectedCountry(null);
@@ -75,7 +84,7 @@ export function ScenarioSelector({
             </p>
             <p className="scenario-era">{scenario.era}</p>
             <p className="scenario-description">{scenario.description}</p>
-          </div>
+          </button>
         ))}
       </div>
 
