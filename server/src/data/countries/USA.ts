@@ -123,7 +123,13 @@ export const USA = createCountry({
 
     sphereOfInfluence: [],
 
-    relations: {}
+    relations: {},
+
+    influence: {},
+
+    guarantees: [],
+
+    sanctions: {}
   },
 
   politics: {

@@ -121,7 +121,10 @@ export const UK = createCountry({
     puppets: [],
     sphereOfInfluence: [],
     relations: {
-    }
+    },
+    influence: {},
+    guarantees: [],
+    sanctions: {}
 
   },
 

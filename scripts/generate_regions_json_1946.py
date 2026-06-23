@@ -95,24 +95,15 @@ def feature_to_region(feature: Dict[str, Any]) -> Dict[str, Any]:
     """Конвертация GeoJSON фичи в Region."""
     props = feature.get('properties', {})
     
-    # Определяем тип региона
-    region_type = props.get('type', 'land')
-    if region_type == 'marine':
-        kind = 'marine'
-    elif region_type == 'canal':
-        kind = 'canal'
-    else:
-        kind = 'land'
-    
     region = {
         'id': props.get('id', feature.get('id', 'unknown')),
         'name': props.get('name', 'Unknown'),
         'name_en': props.get('name_en', props.get('name', 'Unknown')),
-        'ownerCountryId': props.get('owner') or props.get('ownerCountryId') or 'NONE',
-        'countryIso': props.get('country_1946') or props.get('countryIso') or 'NONE',
+        'ownerCountryId': props.get('ownerCountryId', props.get('countryIso', 'NONE')),
+        'countryIso': props.get('countryIso', 'NONE'),
         'macroRegion': props.get('macroRegion', props.get('id', 'unknown')),
-        'kind': kind,
-        'historicalYear': 1946
+        'kind': props.get('kind', 'land'),
+        'historicalYear': props.get('historicalYear', 1946)
     }
     
     # Вычисляем площадь только для land регионов
@@ -125,9 +116,6 @@ def feature_to_region(feature: Dict[str, Any]) -> Dict[str, Any]:
         region['centroid'] = centroid
     
     # Добавляем специальные статусы
-    if props.get('naval_chokepoint'):
-        region['navalChokepoint'] = True
-    
     if props.get('specialStatus'):
         region['specialStatus'] = props['specialStatus']
     
@@ -139,15 +127,8 @@ def feature_to_region(feature: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def main():
-    geojson_path = Path(__file__).parent.parent / 'client' / 'src' / 'assets' / 'world-map-1946.geojson'
-    output_path = Path(__file__).parent.parent / 'client' / 'src' / 'assets' / 'regions-1946.json'
-    
-    print('=== ГЕНЕРАЦИЯ REGIONS.JSON ===\n')
-    
-    if not geojson_path.exists():
-        print(f'Ошибка: Файл не найден: {geojson_path}')
-        print('Сначала запустите: python scripts/merge_continents.py')
-        return
+    geojson_path = Path(__file__).parent.parent / 'client' / 'public' / 'world-map-1946.geojson'
+    output_path = Path(__file__).parent.parent / 'client' / 'public' / 'regions-1946.json'
     
     print('Загрузка GeoJSON...')
     geojson = load_geojson(geojson_path)
@@ -176,14 +157,12 @@ def main():
     print(f'- Специальные: {len(special_regions)}')
     
     # Статистика по странам
-    country_count = len(set(r.get('ownerCountryId') for r in land_regions if r.get('ownerCountryId') != 'NONE'))
+    country_count = len(set(r.get('ownerCountryId') for r in land_regions))
     print(f'\nКоличество стран: {country_count}')
     
     # Статистика по площади
     total_area = sum(r.get('areaSqKm', 0) for r in land_regions)
     print(f'Общая площадь сухопутных регионов: {total_area:,} км²')
-    
-    print('\nГотово!')
 
 
 if __name__ == '__main__':
