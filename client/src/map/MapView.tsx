@@ -3,21 +3,24 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { Region } from '@shared/types/map/Region';
 import type { Country } from '@shared/types/Country';
+import type { MapFeature } from '@shared/types/map/MapFeature';
 import { loadGameMapData, updateMapData, type GameMapData } from './GeoJsonLoader';
 
 interface MapViewProps {
   regions: Region[];
   countries: Country[];
+  mapFeatures: MapFeature[];
   onRegionClick?: (regionId: number) => void;
   selectedRegionId?: number | null;
 }
 
-export function MapView({ regions, countries, onRegionClick, selectedRegionId }: MapViewProps) {
+export function MapView({ regions, countries, mapFeatures, onRegionClick, selectedRegionId }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [mapData, setMapData] = useState<GameMapData | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(2);
   const hoveredRef = useRef<string | number | null | undefined>(null);
   const countryMapRef = useRef<Map<string, Country>>(new Map());
   const regionsRef = useRef<Region[]>(regions);
@@ -34,7 +37,7 @@ export function MapView({ regions, countries, onRegionClick, selectedRegionId }:
 
   // Инициализация карты — чистая география без подложки
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || mapRef.current) return;
 
     const m = new maplibregl.Map({
       container: mapContainer.current,
@@ -67,11 +70,15 @@ export function MapView({ regions, countries, onRegionClick, selectedRegionId }:
 
     m.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    map.current = m;
+    m.on('zoom', () => {
+      setCurrentZoom(m.getZoom());
+    });
+
+    mapRef.current = m;
 
     return () => {
       m.remove();
-      map.current = null;
+      mapRef.current = null;
     };
   }, []);
 
@@ -138,14 +145,16 @@ export function MapView({ regions, countries, onRegionClick, selectedRegionId }:
 
   // Загрузка данных карты
   useEffect(() => {
-    if (!map.current || !loaded || regions.length === 0 || countries.length === 0) return;
+    if (!mapRef.current || !loaded || regions.length === 0 || countries.length === 0) return;
 
-    const m = map.current;
+    const m = mapRef.current;
 
     const loadMap = async () => {
       try {
         console.log('Loading map with countries:', countries.map(c => ({ id: c.id, name: c.name, color: c.color })));
-        const data = await loadGameMapData('/1world-map-full.geojson', regions, countries);
+        // TEMP: /1world-map-full.geojson не существует пока карта в работе у пользователя.
+        // game_map.json — временная подмена только для прототипа интерфейса.
+        const data = await loadGameMapData('/game_map.json', regions, countries);
         setMapData(data);
 
         if (m.getSource('regions')) {
@@ -214,12 +223,12 @@ export function MapView({ regions, countries, onRegionClick, selectedRegionId }:
 
   // Обновление владельцев
   useEffect(() => {
-    if (!map.current || !mapData) return;
+    if (!mapRef.current || !mapData) return;
 
     const updatedData = updateMapData(mapData.featureCollection, regions, countries);
     setMapData({ featureCollection: updatedData });
 
-    const source = map.current.getSource('regions') as maplibregl.GeoJSONSource;
+    const source = mapRef.current.getSource('regions') as maplibregl.GeoJSONSource;
     if (source) {
       source.setData(updatedData);
     }
@@ -228,13 +237,158 @@ export function MapView({ regions, countries, onRegionClick, selectedRegionId }:
 
   // Выделение региона
   useEffect(() => {
-    if (!map.current) return;
-    const m = map.current;
+    if (!mapRef.current) return;
+    const m = mapRef.current;
 
     if (selectedRegionId != null) {
       try { m.setFeatureState({ source: 'regions', id: selectedRegionId }, { selected: true }); } catch {} // eslint-disable-line no-empty
     }
   }, [selectedRegionId]);
 
+  // Инициализация Map Features слоя
+  useEffect(() => {
+    if (!mapRef.current || !loaded) return;
+
+    const m = mapRef.current;
+
+    if (m.getSource('map-features')) return;
+
+    m.addSource('map-features', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: [],
+      },
+    });
+
+    m.addLayer({
+      id: 'map-features-points',
+      type: 'circle',
+      source: 'map-features',
+      paint: {
+        'circle-radius': 6,
+        'circle-color': ['get', 'color'],
+        'circle-opacity': 0.8,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff',
+      },
+    });
+
+    m.addLayer({
+      id: 'map-features-icons',
+      type: 'symbol',
+      source: 'map-features',
+      layout: {
+        'text-field': ['get', 'icon'],
+        'text-size': 16,
+        'text-anchor': 'center',
+        'text-allow-overlap': true,
+      },
+      paint: {
+        'text-color': '#ffffff',
+      },
+    });
+  }, [loaded]);
+
+  // Обновление Map Features
+  useEffect(() => {
+    if (!mapRef.current || !loaded) return;
+
+    const m = mapRef.current;
+
+    const visibleFeatures = mapFeatures.filter(f => {
+      if (f.visibleAtZoom === undefined) return true;
+      return currentZoom >= f.visibleAtZoom;
+    });
+
+    const featureCollection = {
+      type: 'FeatureCollection' as const,
+      features: visibleFeatures
+        .filter(f => f.coordinates)
+        .map(f => {
+          const country = countries.find(c => c.id === f.ownerId);
+          return {
+            type: 'Feature' as const,
+            geometry: {
+              type: 'Point' as const,
+              coordinates: f.coordinates!,
+            },
+            properties: {
+              id: f.id,
+              type: f.type,
+              name: f.name,
+              ownerId: f.ownerId,
+              ownerColor: country?.color || '#808080',
+              icon: getIconForType(f.type),
+              color: getColorForType(f.type),
+            },
+          };
+        }),
+    };
+
+    const source = m.getSource('map-features') as maplibregl.GeoJSONSource;
+    if (source) {
+      source.setData(featureCollection);
+    }
+  }, [mapFeatures, countries, currentZoom, loaded]);
+
   return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />;
+}
+
+function getIconForType(type: string): string {
+  const iconMap: Record<string, string> = {
+    capital: '★',
+    megacity: '●',
+    city: '●',
+    town: '○',
+    port: '⚓',
+    factory: '🏭',
+    steel_mill: '🏭',
+    refinery: '🛢️',
+    shipyard: '⚓',
+    mine: '⛏️',
+    power_plant: '⚡',
+    battalion: '⚔️',
+    fleet: '⛵',
+    airbase: '✈️',
+    naval_base: '⚓',
+    railway: '🚂',
+    canal: '🚢',
+    airport: '✈️',
+    highway: '🛣️',
+    protest: '📢',
+    uprising: '🔥',
+    government: '🏛️',
+    border_dispute: '⚠️',
+  };
+  return iconMap[type] || '•';
+}
+
+function getColorForType(type: string): string {
+  const colorMap: Record<string, string> = {
+    capital: '#FFD700',
+    megacity: '#FF6B6B',
+    city: '#4ECDC4',
+    town: '#95E1D3',
+    port: '#45B7D1',
+    factory: '#FF8C00',
+    steel_mill: '#A0522D',
+    refinery: '#8B4513',
+    shipyard: '#4682B4',
+    mine: '#696969',
+    power_plant: '#FF4500',
+    battalion: '#DC143C',
+    fleet: '#1E90FF',
+    airbase: '#00BFFF',
+    naval_base: '#4169E1',
+    railway: '#708090',
+    canal: '#5F9EA0',
+    airport: '#87CEEB',
+    highway: '#FFA500',
+    protest: '#FF69B4',
+    uprising: '#FF0000',
+    government: '#9370DB',
+    border_dispute: '#FFA07A',
+  };
+  return colorMap[type] || '#FFFFFF';
 }

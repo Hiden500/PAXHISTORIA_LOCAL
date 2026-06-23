@@ -51,6 +51,29 @@ export function aggregateCountryFromRegions(
     0
   ) / totalPopulation;
 
+  // Агрегируем экономические сектора регионов (если инициализированы)
+  let totalAgriculture = 0;
+  let totalIndustry = 0;
+  let totalMining = 0;
+  let totalServices = 0;
+
+  for (const region of countryRegions) {
+    if (region.economy) {
+      totalAgriculture += region.economy.agriculture * region.population;
+      totalIndustry += region.economy.industry * region.population;
+      totalMining += region.economy.mining * region.population;
+      totalServices += region.economy.services * region.population;
+    }
+  }
+
+  // Средневзвешенные по населению сектора
+  const avgSectors = {
+    agriculture: totalAgriculture / totalPopulation,
+    industry: totalIndustry / totalPopulation,
+    mining: totalMining / totalPopulation,
+    services: totalServices / totalPopulation,
+  };
+
   // Resource Production: сумма добычи ресурсов всех регионов
   const resourceProduction: Partial<Record<ResourceType, number>> = {};
   for (const region of countryRegions) {
@@ -62,7 +85,7 @@ export function aggregateCountryFromRegions(
   }
 
   // Если нужно сохранить агрегированные данные в country, можно добавить поля
-  // Например: country.aggregatedRegionData = { infrastructure: avgInfrastructure, ... }
+  // Например: country.aggregatedRegionData = { infrastructure: avgInfrastructure, sectors: avgSectors, ... }
 }
 
 /**

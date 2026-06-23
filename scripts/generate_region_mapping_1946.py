@@ -189,8 +189,8 @@ def generate_auto_mapping(regions: List[Dict[str, Any]], target_regions: int) ->
     
     target_regions = int(target_regions)
     
-    # Если регионов меньше 8, оставляем все как есть (без объединения для увеличения общего количества)
-    if len(regions) <= 8:
+    # Если регионов меньше 12, оставляем все как есть (без объединения для увеличения общего количества)
+    if len(regions) <= 12:
         mapping = {}
         for idx, region in enumerate(regions):
             mapping[f'Region_{idx + 1}'] = [region['adm1Code']]
@@ -215,42 +215,79 @@ def generate_auto_mapping(regions: List[Dict[str, Any]], target_regions: int) ->
 
 
 def generate_mapping(country_map: Dict[str, Dict[str, Any]], proposal: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
-    """Генерация полного маппинга с использованием только автоматической кластеризации."""
+    """Генерация полного маппинга."""
     mapping: Dict[str, Dict[str, Any]] = {}
     
-    # Обработка всех стран с автоматической кластеризацией
+    # Обработка группы 1: крупнейшие державы с ручным маппингом
+    group1 = proposal['groups']['group1_major_powers']['countries']
+    for iso_a3, country_data in group1.items():
+        if 'mapping' in country_data:
+            mapping[iso_a3] = {
+                'targetRegions': country_data['targetRegions'],
+                'mapping': country_data['mapping']
+            }
+    
+    # Обработка остальных стран из proposal
+    all_groups = [
+        proposal['groups']['group2_huge_countries']['countries'],
+        proposal['groups']['group3_large_countries']['countries'],
+        proposal['groups']['group4_medium_countries']['countries'],
+        proposal['groups']['group5_small_countries']['countries']
+    ]
+    
+    for group in all_groups:
+        for iso_a3, country_data in group.items():
+            # Находим регионы страны по ISO A3 или A2
+            country_regions = None
+            for iso_a2, cr in country_map.items():
+                if cr['isoA3'] == iso_a3 or iso_a2 == iso_a3:
+                    country_regions = cr
+                    break
+            
+            if country_regions and country_regions['regions']:
+                auto_mapping = generate_auto_mapping(
+                    country_regions['regions'],
+                    country_data['targetRegions']
+                )
+                mapping[iso_a3] = {
+                    'targetRegions': country_data['targetRegions'],
+                    'mapping': auto_mapping
+                }
+    
+    # Обработка всех остальных стран, не указанных в proposal
+    processed_countries = set(mapping.keys())
     for iso_a2, country_regions in country_map.items():
         iso_a3 = country_regions['isoA3']
-        
-        # Определяем целевое количество регионов на основе площади (строго для достижения 1500-2500)
-        total_area = sum(r['areaSqKm'] for r in country_regions['regions'])
-        region_count = len(country_regions['regions'])
-        
-        if total_area > 1000000:
-            target_regions = min(35, max(18, total_area // 35000))
-        elif total_area > 500000:
-            target_regions = min(25, max(12, total_area // 30000))
-        elif total_area > 250000:
-            target_regions = min(18, max(7, total_area // 25000))
-        elif total_area > 100000:
-            target_regions = min(12, max(4, total_area // 20000))
-        elif total_area > 50000:
-            target_regions = min(7, max(3, total_area // 12000))
-        elif total_area > 10000:
-            target_regions = min(4, max(2, total_area // 6000))
-        else:
-            target_regions = max(1, min(region_count, region_count))
-        
-        target_regions = min(target_regions, region_count)
-        
-        auto_mapping = generate_auto_mapping(
-            country_regions['regions'],
-            target_regions
-        )
-        mapping[iso_a3] = {
-            'targetRegions': target_regions,
-            'mapping': auto_mapping
-        }
+        if iso_a2 not in processed_countries and iso_a3 not in processed_countries:
+            # Определяем целевое количество регионов на основе площади (экстремально агрессивно для достижения 1500-2500)
+            total_area = sum(r['areaSqKm'] for r in country_regions['regions'])
+            region_count = len(country_regions['regions'])
+            
+            if total_area > 1000000:
+                target_regions = min(120, max(60, total_area // 8000))
+            elif total_area > 500000:
+                target_regions = min(80, max(40, total_area // 5000))
+            elif total_area > 250000:
+                target_regions = min(60, max(25, total_area // 3500))
+            elif total_area > 100000:
+                target_regions = min(40, max(15, total_area // 2000))
+            elif total_area > 50000:
+                target_regions = min(25, max(10, total_area // 1500))
+            elif total_area > 10000:
+                target_regions = min(15, max(5, total_area // 800))
+            else:
+                target_regions = max(4, min(region_count, region_count))
+            
+            target_regions = min(target_regions, region_count)
+            
+            auto_mapping = generate_auto_mapping(
+                country_regions['regions'],
+                target_regions
+            )
+            mapping[iso_a3] = {
+                'targetRegions': target_regions,
+                'mapping': auto_mapping
+            }
     
     return mapping
 

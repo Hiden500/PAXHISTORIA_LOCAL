@@ -1,8 +1,9 @@
 import { type Country } from "@shared/types/Country";
 import { type Region } from "@shared/types/map/Region";
+import { RegionEconomyService } from "../../services/RegionEconomyService";
 
 /**
- * Улучшенный ResourceTick с учётом инфраструктуры, технологий и истощения.
+ * Улучшенный ResourceTick с учётом инфраструктуры, технологий, истощения и региональной экономики.
  */
 export function resourceTick(
   country: Country,
@@ -10,6 +11,7 @@ export function resourceTick(
   regionIndex: Map<string, number[]>
 ): void {
   const ownedRegionIds = regionIndex.get(country.id) || [];
+  const regionEconomyService = new RegionEconomyService();
 
   // Бонус от технологий добычи (упрощённо)
   const miningTechLevel = country.technology.domains["Industry"] || 0;
@@ -19,14 +21,22 @@ export function resourceTick(
     const region = regions.find(r => r.id === regionId);
     if (!region) continue;
 
+    // Инициализируем экономику региона если нужно
+    if (!region.economy) {
+      regionEconomyService.initializeRegionEconomy(region);
+    }
+
     // Бонус от инфраструктуры региона
     const infrastructureBonus = 1 + (region.infrastructure * 0.5);
+
+    // Бонус от сектора mining в региональной экономике
+    const miningBonus = region.economy ? (1 + region.economy.mining * 0.3) : 1;
 
     for (const [resource, amount] of Object.entries(region.resourceProduction)) {
       const amountValue = amount as number;
 
-      // Итоговая добыча с учётом бонусов
-      const actualProduction = amountValue * infrastructureBonus * techBonus;
+      // Итоговая добыча с учётом бонусов (инфраструктура + технологии + сектор mining)
+      const actualProduction = amountValue * infrastructureBonus * techBonus * miningBonus;
 
       const key = resource as keyof typeof country.stockpile;
       country.stockpile[key] += actualProduction;

@@ -29,4 +29,11 @@ export interface Region {
   neighboringRegionIds: number[];
 
   sourceAdm1Codes?: string[];
+
+  economy?: {
+    agriculture: number;
+    industry: number;
+    mining: number;
+    services: number;
+  };
 }

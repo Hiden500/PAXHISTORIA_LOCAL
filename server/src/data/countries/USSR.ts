@@ -160,7 +160,13 @@ export const USSR = createCountry({
 
     sphereOfInfluence: [],
 
-    relations: {}
+    relations: {},
+
+    influence: {},
+
+    guarantees: [],
+
+    sanctions: {}
   },
 
   politics: {

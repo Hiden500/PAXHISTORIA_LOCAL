@@ -1,0 +1,292 @@
+import { type Country } from "@shared/types/Country";
+import { type SanctionType } from "@shared/types/DiplomacyState";
+
+/**
+ * Сервис для управления дипломатическими отношениями между странами.
+ */
+export class DiplomacyService {
+  /**
+   * Изменяет отношение между странами.
+   * @param fromId ID страны, от которой идёт изменение
+   * @param toId ID страны, к которой идёт изменение
+   * @param delta Изменение отношения (-100 до 100)
+   */
+  changeRelation(
+    countries: Country[],
+    fromId: string,
+    toId: string,
+    delta: number
+  ): void {
+    const fromCountry = countries.find(c => c.id === fromId);
+    if (!fromCountry) return;
+
+    const currentRelation = fromCountry.diplomacy.relations[toId] || 0;
+    const newRelation = Math.max(-100, Math.min(100, currentRelation + delta));
+    fromCountry.diplomacy.relations[toId] = newRelation;
+
+    // Симметричное изменение отношений (опционально)
+    const toCountry = countries.find(c => c.id === toId);
+    if (toCountry) {
+      const toCurrentRelation = toCountry.diplomacy.relations[fromId] || 0;
+      const toNewRelation = Math.max(-100, Math.min(100, toCurrentRelation + delta * 0.5));
+      toCountry.diplomacy.relations[fromId] = toNewRelation;
+    }
+  }
+
+  /**
+   * Добавляет страну в список союзников.
+   */
+  addAlly(
+    countries: Country[],
+    countryId: string,
+    allyId: string
+  ): void {
+    const country = countries.find(c => c.id === countryId);
+    if (!country) return;
+
+    if (!country.diplomacy.allies.includes(allyId)) {
+      country.diplomacy.allies.push(allyId);
+    }
+
+    // Взаимное добавление
+    const ally = countries.find(c => c.id === allyId);
+    if (ally && !ally.diplomacy.allies.includes(countryId)) {
+      ally.diplomacy.allies.push(countryId);
+    }
+
+    // Улучшаем отношения
+    this.changeRelation(countries, countryId, allyId, 20);
+  }
+
+  /**
+   * Удаляет страну из списка союзников.
+   */
+  removeAlly(
+    countries: Country[],
+    countryId: string,
+    allyId: string
+  ): void {
+    const country = countries.find(c => c.id === countryId);
+    if (!country) return;
+
+    country.diplomacy.allies = country.diplomacy.allies.filter(id => id !== allyId);
+
+    // Взаимное удаление
+    const ally = countries.find(c => c.id === allyId);
+    if (ally) {
+      ally.diplomacy.allies = ally.diplomacy.allies.filter(id => id !== countryId);
+    }
+
+    // Ухудшаем отношения
+    this.changeRelation(countries, countryId, allyId, -30);
+  }
+
+  /**
+   * Добавляет страну в список соперников.
+   */
+  addRival(
+    countries: Country[],
+    countryId: string,
+    rivalId: string
+  ): void {
+    const country = countries.find(c => c.id === countryId);
+    if (!country) return;
+
+    if (!country.diplomacy.rivals.includes(rivalId)) {
+      country.diplomacy.rivals.push(rivalId);
+    }
+
+    // Ухудшаем отношения
+    this.changeRelation(countries, countryId, rivalId, -40);
+  }
+
+  /**
+   * Удаляет страну из списка соперников.
+   */
+  removeRival(
+    countries: Country[],
+    countryId: string,
+    rivalId: string
+  ): void {
+    const country = countries.find(c => c.id === countryId);
+    if (!country) return;
+
+    country.diplomacy.rivals = country.diplomacy.rivals.filter(id => id !== rivalId);
+
+    // Улучшаем отношения
+    this.changeRelation(countries, countryId, rivalId, 20);
+  }
+
+  /**
+   * Добавляет страну в сферу влияния.
+   */
+  addToSphereOfInfluence(
+    countries: Country[],
+    countryId: string,
+    targetId: string
+  ): void {
+    const country = countries.find(c => c.id === countryId);
+    if (!country) return;
+
+    if (!country.diplomacy.sphereOfInfluence.includes(targetId)) {
+      country.diplomacy.sphereOfInfluence.push(targetId);
+    }
+
+    // Увеличиваем влияние
+    this.changeInfluence(countries, countryId, targetId, 10);
+  }
+
+  /**
+   * Удаляет страну из сферы влияния.
+   */
+  removeFromSphereOfInfluence(
+    countries: Country[],
+    countryId: string,
+    targetId: string
+  ): void {
+    const country = countries.find(c => c.id === countryId);
+    if (!country) return;
+
+    country.diplomacy.sphereOfInfluence = country.diplomacy.sphereOfInfluence.filter(id => id !== targetId);
+
+    // Уменьшаем влияние
+    this.changeInfluence(countries, countryId, targetId, -20);
+  }
+
+  /**
+   * Изменяет влияние на страну.
+   * @param fromId ID страны, оказывающей влияние
+   * @param toId ID страны, на которую оказывается влияние
+   * @param delta Изменение влияния
+   */
+  changeInfluence(
+    countries: Country[],
+    fromId: string,
+    toId: string,
+    delta: number
+  ): void {
+    const fromCountry = countries.find(c => c.id === fromId);
+    if (!fromCountry) return;
+
+    const currentInfluence = fromCountry.diplomacy.influence[toId] || 0;
+    const newInfluence = Math.max(0, Math.min(100, currentInfluence + delta));
+    fromCountry.diplomacy.influence[toId] = newInfluence;
+  }
+
+  /**
+   * Добавляет гарантию независимости.
+   */
+  addGuarantee(
+    countries: Country[],
+    guarantorId: string,
+    guaranteedId: string
+  ): void {
+    const guarantor = countries.find(c => c.id === guarantorId);
+    if (!guarantor) return;
+
+    if (!guarantor.diplomacy.guarantees.includes(guaranteedId)) {
+      guarantor.diplomacy.guarantees.push(guaranteedId);
+    }
+
+    // Улучшаем отношения
+    this.changeRelation(countries, guarantorId, guaranteedId, 15);
+  }
+
+  /**
+   * Удаляет гарантию независимости.
+   */
+  removeGuarantee(
+    countries: Country[],
+    guarantorId: string,
+    guaranteedId: string
+  ): void {
+    const guarantor = countries.find(c => c.id === guarantorId);
+    if (!guarantor) return;
+
+    guarantor.diplomacy.guarantees = guarantor.diplomacy.guarantees.filter(id => id !== guaranteedId);
+
+    // Ухудшаем отношения
+    this.changeRelation(countries, guarantorId, guaranteedId, -20);
+  }
+
+  /**
+   * Добавляет санкции против страны.
+   */
+  addSanction(
+    countries: Country[],
+    sanctionerId: string,
+    targetId: string,
+    sanctionType: SanctionType
+  ): void {
+    const sanctioner = countries.find(c => c.id === sanctionerId);
+    if (!sanctioner) return;
+
+    if (!sanctioner.diplomacy.sanctions[targetId]) {
+      sanctioner.diplomacy.sanctions[targetId] = [];
+    }
+
+    if (!sanctioner.diplomacy.sanctions[targetId].includes(sanctionType)) {
+      sanctioner.diplomacy.sanctions[targetId].push(sanctionType);
+    }
+
+    // Ухудшаем отношения
+    this.changeRelation(countries, sanctionerId, targetId, -25);
+  }
+
+  /**
+   * Удаляет санкции против страны.
+   */
+  removeSanction(
+    countries: Country[],
+    sanctionerId: string,
+    targetId: string,
+    sanctionType: SanctionType
+  ): void {
+    const sanctioner = countries.find(c => c.id === sanctionerId);
+    if (!sanctioner) return;
+
+    if (sanctioner.diplomacy.sanctions[targetId]) {
+      sanctioner.diplomacy.sanctions[targetId] = sanctioner.diplomacy.sanctions[targetId].filter(
+        type => type !== sanctionType
+      );
+
+      // Удаляем запись если нет санкций
+      if (sanctioner.diplomacy.sanctions[targetId].length === 0) {
+        delete sanctioner.diplomacy.sanctions[targetId];
+      }
+    }
+
+    // Улучшаем отношения
+    this.changeRelation(countries, sanctionerId, targetId, 15);
+  }
+
+  /**
+   * Рассчитывает дипломатическое напряжение.
+   */
+  calculateDiplomaticTension(country: Country, countries: Country[]): number {
+    let tension = 0;
+
+    // Напряжение от соперников
+    for (const rivalId of country.diplomacy.rivals) {
+      const rival = countries.find(c => c.id === rivalId);
+      if (rival) {
+        const relation = country.diplomacy.relations[rivalId] || 0;
+        tension += Math.abs(relation) * 0.3;
+      }
+    }
+
+    // Напряжение от санкций
+    for (const [targetId, sanctions] of Object.entries(country.diplomacy.sanctions)) {
+      tension += sanctions.length * 10;
+    }
+
+    // Напряжение от плохих отношений
+    for (const [targetId, relation] of Object.entries(country.diplomacy.relations)) {
+      if (relation < -50) {
+        tension += Math.abs(relation) * 0.1;
+      }
+    }
+
+    return Math.min(100, tension);
+  }
+}

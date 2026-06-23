@@ -5,6 +5,8 @@ import { economyTick } from "./economy/EconomyTick";
 import { populationTick } from "./population/PopulationTick";
 import { militaryTick } from "./military/MilitaryTick";
 import { updateAllRegionsAndAggregate } from "@shared/utils/aggregateCountryData";
+import { MapFeatureService } from "../services/MapFeatureService";
+import { diplomacyTick } from "./diplomacy/DiplomacyTick";
 
 export function simulateMonth(
     game: GameState
@@ -24,4 +26,11 @@ export function simulateMonth(
 
     // Агрегируем данные от регионов к странам после всех тиков
     updateAllRegionsAndAggregate(game.countries, game.regions);
+
+    // Дипломатические изменения
+    diplomacyTick(game.countries);
+
+    // Очищаем истёкшие Map Features
+    const mapFeatureService = new MapFeatureService(game);
+    mapFeatureService.removeExpiredFeatures();
 }

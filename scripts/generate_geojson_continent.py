@@ -338,13 +338,23 @@ def generate_continent_geojson(
         for region_id, adm1_codes in country_mapping.items():
             # Собираем все полигоны для региона
             geometries = []
+            # Собираем оригинальные названия ADM1 для отладки
+            adm1_names_list = []
+            for adm1_code in adm1_codes:
+                if adm1_code in adm1_to_feature:
+                    feat = adm1_to_feature[adm1_code]
+                    props = feat.get('properties', {})
+                    adm1_names_list.append(f"{adm1_code}:{props.get('name', '?')}")
+            
             region_props = {
                 'id': f'{iso_a3}-{region_id}',
                 'name': region_id,
                 'type': 'land',
                 'owner': iso_a3,
                 'country_1946': get_owner_1946(iso_a3, iso_a3),
-                'continent': continent_name
+                'continent': continent_name,
+                'adm1_codes': ','.join(adm1_codes),
+                'adm1_names': '; '.join(adm1_names_list)
             }
             
             for adm1_code in adm1_codes:
