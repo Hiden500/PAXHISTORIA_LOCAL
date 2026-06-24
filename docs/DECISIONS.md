@@ -293,6 +293,24 @@ LLM отвечает только за **форму**: конкретное на
 
 ---
 
+## 2026-06-24 — Найдено и исправлено: новый CI вскрыл широкий `.gitignore`, скрывавший 13 файлов исходного кода от git
+
+Первый реальный прогон нового CI (на PR с предыдущих коммитов) упал на двух независимых причинах:
+
+**1. `server` typecheck**: `Cannot find module '../data/countries/France'` (и ещё 8 стран — Germany/GermanyFRA/GermanyUK/GermanyUSA/GermanyUSSR/Italy/China/Taiwan). Причина — правило `.gitignore` `data/` (без анкеринга, строка 49) матчило **любую** папку с именем `data` на любой глубине, включая `server/src/data/countries/` и `shared/src/data/` (исходный TypeScript-код), а не только предполагаемые генерируемые дампы (`server/data/scenarios/*.json`, 2471 регион). Эти файлы существовали на диске и работали локально (dev-сервер читает с диска, не из git), но **никогда не попадали в git** — потенциально с самого их создания. CI, в отличие от локальной разработки, клонирует только то, что в git — поэтому упал сразу.
+
+Аудит выявил полный список пострадавших: 9 файлов `server/src/data/countries/*.ts` (China/France/Germany/GermanyFRA/GermanyUK/GermanyUSA/GermanyUSSR/Italy/Taiwan) и 3 файла `shared/src/data/*.ts` (`countryIsoMapping.ts`, `historicalData1946.ts`, `regionTranslations.ts` — используются клиентским картографическим пайплайном `GeoJsonLoader.ts`/`generateRegionsFromGeoJson.ts`). Плюс найден мёртвый `shared/src/data/regions_1946.json` (574KB) — не импортируется нигде, заменён пайплайном `server/data/scenarios/1946/regions.json`; **не добавлен** в git, явно проигнорирован отдельной точной записью с комментарием.
+
+**Исправлено**: `.gitignore` сужен — вместо `data/` теперь анкерные `/server/data/` и `/client/data/` (только предполагаемые генерируемые дампы) + точечный игнор мёртвого JSON. 12 реальных файлов добавлены в git.
+
+**2. `client` lint**: 3 предсуществующие ошибки, не связанные с этой сессией (наследие редизайна UI, который смержился в `main` без прогона lint): `react-refresh/only-export-components` (не-компонентная функция `getInspectorTitle` экспортировалась из файла компонента `InspectorPanel.tsx` — вынесена в `inspectorTitle.ts`), `react-hooks/set-state-in-effect` (синхронный `setState` внутри `useEffect` в `ScenarioSelector.tsx` — убраны избыточные сбросы на маунте, оставлены только в обработчике кнопки повтора, не подпадающем под правило), `@typescript-eslint/no-explicit-any` (`client/src/types/geojson.d.ts` — заменён на `FeatureCollection` из `@types/geojson`, который уже доступен транзитивно через `@turf/turf`/`maplibre-gl`).
+
+**Урок**: ровно тот случай, который CI должен ловить — "локально работает" ≠ "в git есть всё нужное", и "смержено в main" ≠ "лежащий в репозитории lint когда-либо запускался". Первый реальный прогон CI на этом проекте сразу окупил его добавление.
+
+Статус: ИСПРАВЛЕНО, оба чека (`client`, `server`) проходят локально после фикса (lint+tsc+test для обоих). Не проверено повторным прогоном самого CI на момент записи — будет видно на следующем push.
+
+---
+
 ## Открытые вопросы (актуально на 2026-06-23)
 
 Живой индекс нерешённого — единственный источник статуса "что ещё не решено".
