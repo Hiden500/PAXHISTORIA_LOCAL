@@ -42,6 +42,21 @@ e.g. "Выполнено" ≠ "проверено end-to-end"). Therefore:
 
 ---
 
+# Tooling Authority
+
+Codebase intelligence (this repo) → Repowise MCP. External library docs → Context7 MCP.
+Tool-usage protocol lives in `.claude/CLAUDE.md`. Do not add a second repository-intelligence
+system or a second docs provider — they duplicate these and waste context.
+
+# Context Budget
+
+Default to the cheapest sufficient read. For any indexed file: Repowise `get_context`
+skeleton → `get_symbol` for bodies → `path:a-b` range reads. Reserve full `Read` for files
+the index marks `mostly_full` or cannot serve. Do not re-read content a `verified` Repowise
+response already returned. Prefer `repowise distill` for noisy command output.
+
+---
+
 # Understand Before Changing
 
 Before proposing, implementing, or refactoring:
