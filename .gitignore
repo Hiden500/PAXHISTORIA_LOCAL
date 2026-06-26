@@ -55,3 +55,13 @@ logs/
 # Неиспользуемый дамп регионов (574KB, не импортируется — заменён
 # пайплайном server/data/scenarios/1946/regions.json)
 /shared/src/data/regions_1946.json
+
+# repowise API keys (local)
+.repowise/.env
+
+# repowise local caches (config .mcp.json IS tracked; these are machine-local)
+.repowise/*.pkl
+.repowise/wiki.db
+.repowise/centrality_cache.pkl
+.repowise/.augment-session.json
+.repowise/jobs/

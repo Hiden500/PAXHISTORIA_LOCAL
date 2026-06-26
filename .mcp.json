@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "repowise": {
+      "command": "repowise",
+      "args": ["mcp", "D:/Pax Historia LOCAL", "--transport", "stdio"],
+      "description": "repowise: codebase intelligence — docs, graph, git signals, dead code, decisions"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "description": "context7: up-to-date docs for external libraries (React, Vite, Express, Zod, vitest)"
+    }
+  }
+}
