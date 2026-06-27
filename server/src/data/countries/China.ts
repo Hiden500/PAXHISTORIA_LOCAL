@@ -10,25 +10,7 @@ export const China = createCountry({
   capitalRegionId: 33,
   population: 540_000_000,
   economyType: EconomyType.Planned,
-  economy: {
-    gdp: 120000,
-    treasury: 3000,
-    taxRevenue: 600,
-    exportIncome: 50,
-    stateEnterpriseIncome: 200,
-    otherIncome: 50,
-    militarySpending: 500,
-    researchSpending: 50,
-    educationSpending: 100,
-    infrastructureSpending: 100,
-    welfareSpending: 150,
-    debtInterest: 0,
-    otherExpenses: 100,
-    inflation: 15,
-    unemployment: 20,
-    tradeBalance: -2,
-    budgetBalance: -50
-  },
+  economyProfile: { inflation: 15, unemployment: 20 },
   technology: {
     domains: { nuclear: 0, rocketry: 0, electronics: 0, aviation: 0, biology: 0, armor: 0, naval: 0, infantry: 0 },
     projects: []

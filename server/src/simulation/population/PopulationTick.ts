@@ -22,8 +22,11 @@ export function populationTick(
   // Факторы страны
   const gdpPerCapita = country.economy.gdp / country.population;
   const standardOfLiving = Math.min(gdpPerCapita / 10000, 2); // Нормализуем
-  const educationFactor = country.economy.educationSpending / country.economy.gdp;
-  const welfareFactor = country.economy.welfareSpending / country.economy.gdp;
+  // Страна без территории (gdp=0) не получает бонус/штраф, не NaN; см.
+  // EconomyTick.ts, та же защита.
+  const hasGdp = country.economy.gdp > 0;
+  const educationFactor = hasGdp ? country.economy.educationSpending / country.economy.gdp : 0;
+  const welfareFactor = hasGdp ? country.economy.welfareSpending / country.economy.gdp : 0;
   const stabilityFactor = country.politics.stability / 100;
 
   // Технологический бонус медицины (упрощённо)

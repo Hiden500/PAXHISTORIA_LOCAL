@@ -9,25 +9,6 @@ export const FRA = createCountry({
   capitalRegionId: 26,
   population: 42_000_000,
   economyType: EconomyType.Market,
-  economy: {
-    gdp: 48000,
-    treasury: 3000,
-    taxRevenue: 700,
-    exportIncome: 300,
-    stateEnterpriseIncome: 80,
-    otherIncome: 50,
-    militarySpending: 250,
-    researchSpending: 60,
-    educationSpending: 100,
-    infrastructureSpending: 90,
-    welfareSpending: 150,
-    debtInterest: 120,
-    otherExpenses: 50,
-    inflation: 2.5,
-    unemployment: 5,
-    tradeBalance: 1,
-    budgetBalance: 220
-  },
   technology: {
     domains: {
       nuclear: 1,

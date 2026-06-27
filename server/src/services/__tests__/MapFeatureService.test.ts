@@ -19,6 +19,12 @@ describe('MapFeatureService', () => {
         color: '#3C3B6E',
         capitalRegionId: 1,
         population: 330000000,
+        // Не используется этим тестом (MapFeatureService не читает экономику) —
+        // нужен только для валидности типа Country.
+        economyProfile: {
+          taxRate: 0.1,
+          spending: { military: 0.15, research: 0.1, education: 0.15, infrastructure: 0.15, welfare: 0.3, other: 0.1 },
+        },
         economy: {
           gdp: 21000000000000,
           treasury: 1000000000000,

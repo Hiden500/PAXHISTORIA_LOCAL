@@ -1,0 +1,161 @@
+# Экономика
+
+Last updated: 2026-06-26
+
+> ⚠️ Заготовка. Часть решений не принята — см. разделы "Открытые вопросы" ниже.
+> Непомеченные числа — не источник истины, пока раздел не финализирован.
+> Общие принципы ("лёгкая экономика", запрет на Victoria-сложность) — в
+> `AGENTS.md`, не дублируются здесь.
+
+## Назначение
+
+Этот файл — дом для дизайна экономической петли: откуда берётся ВВП, как
+считается бюджет, что такое единицы измерения в игре, и что делать с
+ресурсами после добычи. Консолидирует то, что сейчас размазано по
+`AGENTS.md` / `docs/AI_RULES.md` / `docs/DECISIONS.md`.
+
+Смежные доки: [`TRADE.md`](TRADE.md) (мировой рынок, экспорт, логистика),
+[`MAP_FEATURES.md`](MAP_FEATURES.md) (заводы/шахты как unit экономики),
+[`POLITICS.md`](POLITICS.md) (как экономика двигает стабильность).
+Масштаб мира (число регионов/стран/ресурсов) — только в `docs/WORLD.md`.
+
+---
+
+## Текущее состояние в коде
+
+### Поля `EconomyState` (`shared/src/types/EconomyState.ts`)
+
+- `gdp`, `treasury`
+- Доход: `taxRevenue`, `exportIncome`, `stateEnterpriseIncome`, `otherIncome`
+- Расход: `militarySpending`, `researchSpending`, `educationSpending`,
+  `infrastructureSpending`, `welfareSpending`, `debtInterest`, `otherExpenses`
+- `inflation`, `unemployment`, `tradeBalance`, `budgetBalance`
+- `taxRate?` — рантайм-поле, выводится в `createGame` (см. ниже)
+- `spendingFloor?` — снимок 50% старта по 5 дискреционным статьям, используется
+  только ИИ-аустерити (`AiBehaviorTick.ts`)
+
+### Откуда берётся ВВП
+
+ВВП считается на уровне региона и агрегируется к стране
+(`shared/src/utils/aggregateCountryData.ts`). Формула роста региона —
+`EconomyTick.ts:59-77`:
+
+```
+baseGrowthRate = 0.001 + avgDevelopment×0.002 + avgInfrastructure×0.001
+infrastructureBonus = infrastructureSpending / gdp × 0.5
+deficitPenalty = budgetBalance < 0 ? |budgetBalance| / gdp × 0.3 : 0
+growthRate = max(0, baseGrowthRate + infrastructureBonus - deficitPenalty)
+region.gdp *= (1 + growthRate + sectorBonus)   // sectorBonus от industry/services региона
+```
+
+`country.economy.gdp` перезаписывается агрегацией (Σ `region.gdp`), не
+накапливается отдельно.
+
+### Петля бюджета (`EconomyTick.ts:9-88`)
+
+```
+if (taxRate !== undefined) taxRevenue = gdp × taxRate      // см. "Решено" ниже
+income   = taxRevenue + exportIncome + stateEnterpriseIncome + otherIncome
+expenses = militarySpending + researchSpending + educationSpending
+         + infrastructureSpending + welfareSpending + debtInterest + otherExpenses
+budgetBalance = income - expenses
+treasury += budgetBalance
+inflation    += 0.1 × (expenses - income) / gdp
+unemployment += 0.05 × (expenses - income) / gdp   // floored at 0
+```
+
+`RegionEconomyService.calculateRegionalProduction`/`aggregateRegionEconomy`
+существуют и протестированы, но **не подключены** к общему циклу — зарезервированы
+под будущую MapFeature-экономику (см. `MAP_FEATURES.md`). Не включать их в
+`EconomyTick` без явного решения, кто считает что — иначе задвоение
+(прецедент: удалённый `ProductionTick`, см. `DECISIONS.md` 2026-06-22).
+
+### Добыча ресурсов
+
+Считает **только** `ResourceTick` (`server/src/simulation/resources/ResourceTick.ts`):
+`actualProduction = baseAmount × infrastructureBonus × techBonus × miningBonus`,
+пишет в `country.stockpile` (`Record<ResourceType, number>`), истощает
+месторождение на 0.01%/мес до минимума 10%. `stockpile` только **копится** —
+ничего не потребляет и не продаёт (см. "Открытые вопросы", Q-петля ресурсов).
+
+---
+
+## Что уже решено
+
+- **`taxRevenue = gdp × taxRate`** (`docs/DECISIONS.md`, 2026-06-23): ставка
+  выводится в `createGame` как `taxRevenue / gdp` на старте партии, далее
+  пересчитывается каждый тик. `export/stateEnterprise/other` остаются
+  статичными в первом проходе — оживут с торговлей (`TRADE.md`).
+- **Добыча ресурсов — только `ResourceTick`** (`docs/DECISIONS.md`, 2026-06-23,
+  бывш. "вопрос 4"). `RegionEconomyService.calculateRegionalProduction`
+  не включается в общий цикл, чтобы не задвоить добычу.
+- Снимок `spendingFloor` (50% старта) и ИИ-аустерити по дефициту — реализованы,
+  детали в `docs/DECISIONS.md` (2026-06-23) и [`POLITICS.md`](POLITICS.md)
+  (там же — связь с дальнейшими нудж-правилами).
+
+---
+
+## Модель единиц (Q9 — решено и реализовано, 2026-06-26)
+
+Раньше `gdp` (~10¹¹, из формулы региона) и budget-поля (`treasury`/`*Spending`,
+~10³, согласованные между собой в данных стран) жили на разных масштабах —
+все формулы вида `spending/gdp` (инфляция, безработица, military-бонус,
+рождаемость, исследования — 8 мест) схлопывались в `≈0`. Найденный при этом
+второй, не связанный с масштабом баг: `region.gdp` пересчитывался с нуля
+**каждый ход** в `updateAllRegionsAndAggregate`, что стирало накопленный рост
+из `EconomyTick` — экономический рост был мёртв независимо от масштаба
+(исправлено отдельно, см. ниже).
+
+**Принятая модель — "ВВП-якорь + доли":** `gdp` остаётся единственной
+абсолютной величиной (из регионов, формула не тронута). Всё финансовое —
+**масштаб-свободные доли** в новом типе `EconomyProfile`
+(`shared/src/types/EconomyProfile.ts`): `taxRate`, доли бюджета по статьям
+(`spending.military/research/education/infrastructure/welfare/other`),
+`treasuryShare`/`exportShare`/`stateEnterpriseShare`/`otherIncomeShare`.
+
+**Поток данных:**
+- Страна авторит `economyType` (`planned`/`mixed`/`market`) + опциональные
+  оверрайды профиля. `createCountry` (`server/src/data/countries/templates/CreateCountry.ts`)
+  мержит их с архетип-дефолтом (`templates/economyArchetypes.ts`) и строит
+  `economy` как нулевой placeholder.
+- `createGame` (после агрегации регионов, когда `gdp` известен) выводит
+  денежные поля: `taxRevenue = gdp×taxRate`, `*Income = gdp×доля`,
+  `*Spending = income×доля`, `treasury = gdp×treasuryShare`.
+- Следствие: `spending/gdp ≈ taxRate×доля` — **одинаковое отношение для
+  страны любого размера**, все 8 мест оживают без правки самих формул.
+  Подтверждено симуляцией: страны одного архетипа дают идентичный `mil/gdp`
+  независимо от абсолютного ВВП (разница в десятки раз).
+
+**Сопутствующий фикс (тот самый "рост мёртв"):** `aggregateCountryData.ts`
+разделён на `initializeRegionGdp` (формула региона, только при `createGame`)
+и `aggregateAllCountries` (просто суммирует текущий `region.gdp`, без
+пересчёта — вызывается каждый ход в `SimulationEngine`). До фикса рост ВВП
+не работал **независимо от Q9** — это был отдельный баг, найденный при
+верификации.
+
+**Тюнинг:** коэффициенты роста (`EconomyTick.ts`, именованные константы в
+начале файла — `INFRASTRUCTURE_SPENDING_GROWTH_COEFFICIENT` и т.д.) и
+архетип-доли — стартовые предложения, не финальный баланс. Прогон 12 ходов
+на сценарии 1946 даёт ~11%/год роста для рыночного архетипа, ~20%/год для
+планового (форсированная индустриализация) — правдоподобно, но не
+откалибровано под реальную историю.
+
+**⚠️ Текущие 12 стран (1946) — тестовые фикстуры, см. `docs/SCENARIOS.md`.**
+Конвертированы на доли механически (через архетип по `economyType`), без
+исторической калибровки. На их числа не ориентироваться при оценке баланса.
+
+### Q8 — Петля ресурсов
+
+`stockpile` копится бесконечно, ничего не потребляет и не монетизирует.
+Не спроектировано: что потребляет ресурсы (производство юнитов? MapFeature
+input/output, см. `MAP_FEATURES.md`?), как ресурс превращается в доход
+(продажа на рынке — см. `TRADE.md`, или прямой множитель к `gdp`/`taxRevenue`).
+Глубже базовой петли дохода (P1), отдельная задача.
+
+### Прочее (не блокер, просто незавершённое)
+
+- `exportIncome`/`stateEnterpriseIncome`/`otherIncome` выводятся как доли ВВП
+  один раз в `createGame`, но не пересчитываются по тикам (нет тика, который
+  бы их трогал) — оживут их торговля (`exportIncome` → `TRADE.md`) и,
+  возможно, отдельное решение по `stateEnterpriseIncome` (госпредприятия, не
+  спроектировано вообще).

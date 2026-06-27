@@ -17,8 +17,9 @@ export function researchTick(
   const researchCenters = countryRegions.filter(r => r.development > 0.7).length;
   const researchCenterBonus = 1 + (researchCenters * 0.1);
 
-  // Бонус от образования
-  const educationRatio = economy.educationSpending / economy.gdp;
+  // Бонус от образования (страна без территории — gdp=0 — не получает
+  // бонус, не NaN; см. EconomyTick.ts, та же защита).
+  const educationRatio = economy.gdp > 0 ? economy.educationSpending / economy.gdp : 0;
   const educationBonus = 1 + (educationRatio * 2);
 
   // Общий бонус к исследованиям

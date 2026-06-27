@@ -22,12 +22,37 @@ export function createGame(
   // Инициализируем ВВП регионов и агрегируем данные к странам
   updateAllRegionsAndAggregate(countries, regions);
 
-  // Выводим эффективную налоговую ставку (taxRevenue/gdp) на старте партии.
-  // Далее EconomyTick держит taxRevenue = gdp × taxRate, чтобы доход следовал
-  // за ВВП. Считаем после агрегации — gdp уже = Σ region.gdp. См. docs/DECISIONS.md.
+  // Выводим денежные поля economy из economyProfile (масштаб-свободные доли,
+  // авторский источник истины) × gdp (известен только после агрегации выше).
+  // taxRate авторится напрямую в профиле — не нужно выводить его из отношения,
+  // как раньше. См. docs/ECONOMY.md ("Модель единиц"), docs/DECISIONS.md (2026-06-26, Q9).
   for (const country of countries) {
     const e = country.economy;
-    e.taxRate = e.gdp > 0 ? e.taxRevenue / e.gdp : 0;
+    const p = country.economyProfile;
+    const gdp = e.gdp;
+
+    e.taxRate = p.taxRate;
+    e.taxRevenue = gdp * p.taxRate;
+    e.exportIncome = gdp * (p.exportShare ?? 0);
+    e.stateEnterpriseIncome = gdp * (p.stateEnterpriseShare ?? 0);
+    e.otherIncome = gdp * (p.otherIncomeShare ?? 0);
+
+    const income = e.taxRevenue + e.exportIncome + e.stateEnterpriseIncome + e.otherIncome;
+
+    e.militarySpending = income * p.spending.military;
+    e.researchSpending = income * p.spending.research;
+    e.educationSpending = income * p.spending.education;
+    e.infrastructureSpending = income * p.spending.infrastructure;
+    e.welfareSpending = income * p.spending.welfare;
+    e.otherExpenses = income * p.spending.other;
+    e.debtInterest = income * (p.debtInterestShare ?? 0);
+
+    e.treasury = gdp * (p.treasuryShare ?? 0.05);
+
+    const expenses =
+      e.militarySpending + e.researchSpending + e.educationSpending +
+      e.infrastructureSpending + e.welfareSpending + e.debtInterest + e.otherExpenses;
+    e.budgetBalance = income - expenses;
 
     // Снимок пола дискреционных расходов (50% старта) для ИИ-аустерити (Правило A).
     e.spendingFloor = {

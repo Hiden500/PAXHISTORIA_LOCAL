@@ -4,7 +4,7 @@ import { researchTick } from "./research/ResearchTick";
 import { economyTick } from "./economy/EconomyTick";
 import { populationTick } from "./population/PopulationTick";
 import { militaryTick } from "./military/MilitaryTick";
-import { updateAllRegionsAndAggregate } from "@shared/utils/aggregateCountryData";
+import { aggregateAllCountries } from "@shared/utils/aggregateCountryData";
 import { MapFeatureService } from "../services/MapFeatureService";
 import { diplomacyTick } from "./diplomacy/DiplomacyTick";
 import { aiBehaviorTick } from "./ai/AiBehaviorTick";
@@ -25,8 +25,10 @@ export function simulateMonth(
         militaryTick(country, game.regions);
     }
 
-    // Агрегируем данные от регионов к странам после всех тиков
-    updateAllRegionsAndAggregate(game.countries, game.regions);
+    // Агрегируем данные от регионов к странам после всех тиков. НЕ пересчитывает
+    // region.gdp — иначе стирался бы рост, который EconomyTick только что
+    // применил (см. shared/src/utils/aggregateCountryData.ts).
+    aggregateAllCountries(game.countries, game.regions);
 
     // Дипломатические изменения
     diplomacyTick(game.countries);

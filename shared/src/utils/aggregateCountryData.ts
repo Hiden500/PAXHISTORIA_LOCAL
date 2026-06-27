@@ -99,19 +99,40 @@ export function calculateRegionGdp(region: Region): number {
 }
 
 /**
- * Обновляет ВВП всех регионов и агрегирует данные к странам.
+ * Выставляет начальный ВВП всех регионов по формуле (население × развитие ×
+ * инфраструктура). Использовать ТОЛЬКО при создании партии (createGame) —
+ * после старта region.gdp растёт через EconomyTick (мультипликативно, с
+ * памятью), и повторный пересчёт по этой формуле каждый ход стирал бы тот
+ * рост (найдено при верификации Q9, см. docs/DECISIONS.md 2026-06-26).
+ */
+export function initializeRegionGdp(regions: Region[]): void {
+  for (const region of regions) {
+    region.gdp = calculateRegionGdp(region);
+  }
+}
+
+/**
+ * Агрегирует текущий region.gdp (и прочие региональные показатели) к странам.
+ * НЕ пересчитывает region.gdp — это раздельный шаг (initializeRegionGdp),
+ * чтобы не затирать рост, накопленный EconomyTick за предыдущие ходы.
+ */
+export function aggregateAllCountries(
+  countries: Country[],
+  regions: Region[]
+): void {
+  for (const country of countries) {
+    aggregateCountryFromRegions(country, regions);
+  }
+}
+
+/**
+ * Полная инициализация при создании партии: ВВП регионов + агрегация к
+ * странам. Не использовать в симуляции тиков — см. initializeRegionGdp.
  */
 export function updateAllRegionsAndAggregate(
   countries: Country[],
   regions: Region[]
 ): void {
-  // Сначала обновляем ВВП каждого региона
-  for (const region of regions) {
-    region.gdp = calculateRegionGdp(region);
-  }
-
-  // Затем агрегируем данные к странам
-  for (const country of countries) {
-    aggregateCountryFromRegions(country, regions);
-  }
+  initializeRegionGdp(regions);
+  aggregateAllCountries(countries, regions);
 }
