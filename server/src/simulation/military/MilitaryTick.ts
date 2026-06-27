@@ -19,8 +19,9 @@ export function militaryTick(
   // Базовый набор manpower: 0.1% населения в месяц
   const baseManpowerGain = Math.floor(totalPopulation * 0.001);
 
-  // Бонус от военных расходов
-  const militarySpendingRatio = economy.militarySpending / economy.gdp;
+  // Бонус от военных расходов (страна без территории — gdp=0 — не получает
+  // бонус/штраф, не NaN; см. EconomyTick.ts, та же защита).
+  const militarySpendingRatio = economy.gdp > 0 ? economy.militarySpending / economy.gdp : 0;
   const spendingBonus = Math.floor(baseManpowerGain * militarySpendingRatio * 2);
 
   // Штраф от низкой стабильности

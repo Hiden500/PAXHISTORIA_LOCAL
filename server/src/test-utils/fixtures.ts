@@ -13,6 +13,26 @@ export function createTestCountry(overrides: Partial<Country> = {}): Country {
     color: "#FF0000",
     capitalRegionId: 1,
     population: 10_000_000,
+    // Не источник истины для тиков (они читают economy напрямую) — нужен только
+    // чтобы Country оставался валиден по типу и для тестов createGame-деривации.
+    economyProfile: {
+      taxRate: 0.2,
+      spending: {
+        military: 0.3,
+        research: 0.2,
+        education: 0.2,
+        infrastructure: 0.1,
+        welfare: 0.15,
+        other: 0.05,
+      },
+      treasuryShare: 0.2,
+      exportShare: 0.1,
+      stateEnterpriseShare: 0.04,
+      otherIncomeShare: 0.02,
+      inflation: 2.0,
+      unemployment: 5.0,
+      tradeBalance: -10_000_000_000,
+    },
     economy: {
       gdp: 500_000_000_000,
       treasury: 100_000_000_000,

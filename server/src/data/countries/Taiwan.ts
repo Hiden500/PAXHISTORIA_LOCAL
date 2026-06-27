@@ -10,25 +10,7 @@ export const Taiwan = createCountry({
   capitalRegionId: 42,
   population: 6_000_000,
   economyType: EconomyType.Mixed,
-  economy: {
-    gdp: 8000,
-    treasury: 1500,
-    taxRevenue: 300,
-    exportIncome: 50,
-    stateEnterpriseIncome: 30,
-    otherIncome: 20,
-    militarySpending: 150,
-    researchSpending: 20,
-    educationSpending: 40,
-    infrastructureSpending: 30,
-    welfareSpending: 50,
-    debtInterest: 30,
-    otherExpenses: 30,
-    inflation: 10,
-    unemployment: 8,
-    tradeBalance: 1,
-    budgetBalance: -20
-  },
+  economyProfile: { inflation: 10, unemployment: 8 },
   technology: {
     domains: { nuclear: 0, rocketry: 0, electronics: 0, aviation: 0, biology: 0, armor: 0, naval: 0, infantry: 0 },
     projects: []

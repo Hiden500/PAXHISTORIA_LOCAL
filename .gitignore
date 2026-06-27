@@ -25,6 +25,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Claude Code worktrees (ephemeral, local-only — created by EnterWorktree)
+.claude/worktrees/
+
 # Кэш
 .cache/
 .parcel-cache/
@@ -62,6 +65,11 @@ logs/
 # repowise local caches (config .mcp.json IS tracked; these are machine-local)
 .repowise/*.pkl
 .repowise/wiki.db
+.repowise/wiki.db-shm
+.repowise/wiki.db-wal
 .repowise/centrality_cache.pkl
 .repowise/.augment-session.json
+.repowise/.augment-warned
+.repowise/state.json
+.repowise/knowledge-graph.json
 .repowise/jobs/

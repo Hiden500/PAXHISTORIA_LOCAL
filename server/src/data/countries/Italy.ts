@@ -3,32 +3,16 @@ import { EconomyType } from "@shared/types/EconomyType";
 
 // Италия 1946 — республика после падения фашизма
 export const Italy = createCountry({
-  id: "Italy",
+  // id должен совпадать с ownerCountryId в data/scenarios/1946/regions.json
+  // ("ITA"), иначе страна не владеет ни одним регионом (gdp=0, найдено при
+  // верификации Q9 — см. docs/DECISIONS.md 2026-06-26).
+  id: "ITA",
   name: "Italy",
   shortName: "ITA",
   color: "#16a34a",
   capitalRegionId: 0,
   population: 47_000_000,
   economyType: EconomyType.Mixed,
-  economy: {
-    gdp: 45000,
-    treasury: 5000,
-    taxRevenue: 800,
-    exportIncome: 400,
-    stateEnterpriseIncome: 100,
-    otherIncome: 100,
-    militarySpending: 200,
-    researchSpending: 80,
-    educationSpending: 150,
-    infrastructureSpending: 150,
-    welfareSpending: 300,
-    debtInterest: 100,
-    otherExpenses: 100,
-    inflation: 5,
-    unemployment: 12,
-    tradeBalance: 2,
-    budgetBalance: -30
-  },
   technology: {
     domains: { nuclear: 0, rocketry: 0, electronics: 0, aviation: 0, biology: 0, armor: 0, naval: 0, infantry: 0 },
     projects: []

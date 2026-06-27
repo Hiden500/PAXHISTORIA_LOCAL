@@ -10,24 +10,12 @@ export const GermanyUSA = createCountry({
   capitalRegionId: 0,
   population: 22_000_000,
   economyType: EconomyType.Market,
-  economy: {
-    gdp: 12000,
-    treasury: 800,
-    taxRevenue: 200,
-    exportIncome: 80,
-    stateEnterpriseIncome: 10,
-    otherIncome: 20,
-    militarySpending: 0,
-    researchSpending: 20,
-    educationSpending: 40,
-    infrastructureSpending: 60,
-    welfareSpending: 70,
-    debtInterest: 40,
-    otherExpenses: 40,
+  // Оккупированная зона: без вооружённых сил, высокая инфляция/безработица —
+  // см. docs/SCENARIOS.md (страны-фикстуры).
+  economyProfile: {
+    spending: { military: 0 },
     inflation: 20,
     unemployment: 25,
-    tradeBalance: -1,
-    budgetBalance: -30
   },
   technology: {
     domains: { nuclear: 0, rocketry: 0, electronics: 0, aviation: 0, biology: 0, armor: 0, naval: 0, infantry: 0 },

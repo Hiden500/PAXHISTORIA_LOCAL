@@ -5,7 +5,26 @@ import { RegionEconomyService } from "../../services/RegionEconomyService";
 /**
  * Обновлённый EconomyTick с использованием регионов и региональной экономики.
  * Рост ВВП на основе промышленности регионов, инфраструктуры и ресурсов.
+ *
+ * Константы ниже — тюнингуемый баланс, не историческая истина (см.
+ * docs/ECONOMY.md, docs/DECISIONS.md 2026-06-26, Q9). Перекалиброваны при
+ * переходе на модель "ВВП-якорь + доли": до неё infrastructureSpending/gdp
+ * было ≈0 при любом коэффициенте (другой баг масштаба), теперь не ≈0, и
+ * старый коэффициент 0.5 давал нереалистичный рост (~20-50%/год). Подбирать
+ * на симуляции дальше, не считать текущие значения финальными.
  */
+const BASE_GROWTH_INTERCEPT = 0.001;
+const BASE_GROWTH_DEVELOPMENT_COEFFICIENT = 0.002;
+const BASE_GROWTH_INFRASTRUCTURE_COEFFICIENT = 0.001;
+const INFRASTRUCTURE_SPENDING_GROWTH_COEFFICIENT = 0.15;
+const DEFICIT_PENALTY_COEFFICIENT = 0.3;
+const SECTOR_INDUSTRY_GROWTH_COEFFICIENT = 0.002;
+const SECTOR_SERVICES_GROWTH_COEFFICIENT = 0.001;
+/** Защитный потолок месячного роста — не даёт архетипу разогнаться неограниченно. */
+const MAX_MONTHLY_GROWTH_RATE = 0.05;
+const INFLATION_DEFICIT_COEFFICIENT = 0.1;
+const UNEMPLOYMENT_DEFICIT_COEFFICIENT = 0.05;
+
 export function economyTick(
   country: Country,
   regions: Region[]
@@ -56,33 +75,53 @@ export function economyTick(
   }
 
   // Базовый рост на основе среднего развития и инфраструктуры
-  const baseGrowthRate = 0.001 + (avgDevelopment * 0.002) + (avgInfrastructure * 0.001);
+  const baseGrowthRate =
+    BASE_GROWTH_INTERCEPT +
+    avgDevelopment * BASE_GROWTH_DEVELOPMENT_COEFFICIENT +
+    avgInfrastructure * BASE_GROWTH_INFRASTRUCTURE_COEFFICIENT;
+
+  // Страна без территории (0 регионов, напр. рассинхрон id со сценарием, или
+  // будущая полная оккупация в war-системе) имеет gdp=0 — деление даёт NaN,
+  // а не ноль. Считаем такую страну экономически инертной за этот тик.
+  const hasGdp = economy.gdp > 0;
 
   // Бонус от инвестиций в инфраструктуру
-  const infrastructureBonus = economy.infrastructureSpending / economy.gdp * 0.5;
+  const infrastructureBonus = hasGdp
+    ? economy.infrastructureSpending / economy.gdp * INFRASTRUCTURE_SPENDING_GROWTH_COEFFICIENT
+    : 0;
 
   // Штраф от дефицита бюджета
-  const deficitPenalty = economy.budgetBalance < 0 ? Math.abs(economy.budgetBalance) / economy.gdp * 0.3 : 0;
+  const deficitPenalty = hasGdp && economy.budgetBalance < 0
+    ? Math.abs(economy.budgetBalance) / economy.gdp * DEFICIT_PENALTY_COEFFICIENT
+    : 0;
 
-  // Итоговый рост
-  const growthRate = Math.max(0, baseGrowthRate + infrastructureBonus - deficitPenalty);
+  // Итоговый рост, с защитным потолком (см. константы выше)
+  const growthRate = Math.min(
+    MAX_MONTHLY_GROWTH_RATE,
+    Math.max(0, baseGrowthRate + infrastructureBonus - deficitPenalty)
+  );
 
   // Применяем рост к ВВП регионов с учётом экономических секторов
   for (const region of countryRegions) {
     // Регионы с сильной промышленностью растут быстрее
     let sectorBonus = 0;
     if (region.economy) {
-      sectorBonus = region.economy.industry * 0.002 + region.economy.services * 0.001;
+      sectorBonus =
+        region.economy.industry * SECTOR_INDUSTRY_GROWTH_COEFFICIENT +
+        region.economy.services * SECTOR_SERVICES_GROWTH_COEFFICIENT;
     }
     region.gdp *= (1 + growthRate + sectorBonus);
   }
 
-  // ВВП страны обновится через агрегацию в SimulationEngine
+  // ВВП страны обновится через агрегацию в SimulationEngine (aggregateAllCountries,
+  // без пересчёта region.gdp — см. shared/src/utils/aggregateCountryData.ts)
 
   // Инфляция на основе дефицита бюджета и денежной массы
-  economy.inflation += 0.1 * (expenses - income) / economy.gdp;
+  if (hasGdp) {
+    economy.inflation += INFLATION_DEFICIT_COEFFICIENT * (expenses - income) / economy.gdp;
 
-  // Безработица на основе экономического роста
-  economy.unemployment += 0.05 * (expenses - income) / economy.gdp;
-  economy.unemployment = Math.max(0, economy.unemployment);
+    // Безработица на основе экономического роста
+    economy.unemployment += UNEMPLOYMENT_DEFICIT_COEFFICIENT * (expenses - income) / economy.gdp;
+    economy.unemployment = Math.max(0, economy.unemployment);
+  }
 }

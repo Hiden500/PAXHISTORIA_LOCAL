@@ -18,43 +18,6 @@ export const USSR = createCountry({
 
   economyType: EconomyType.Planned,
 
-  economy: {
-
-    gdp: 90000,
-
-    treasury: 5000,
-
-    taxRevenue: 900,
-
-    exportIncome: 150,
-
-    stateEnterpriseIncome: 700,
-
-    otherIncome: 100,
-
-    militarySpending: 400,
-
-    researchSpending: 80,
-
-    educationSpending: 120,
-
-    infrastructureSpending: 300,
-
-    welfareSpending: 150,
-
-    debtInterest: 0,
-
-    otherExpenses: 100,
-
-    inflation: 2,
-
-    unemployment: 1,
-
-    tradeBalance: 3,
-
-    budgetBalance: 700
-  },
-
   technology: {
 
     domains: {

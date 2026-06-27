@@ -39,6 +39,12 @@ describe('RegionEconomyService', () => {
       color: '#FF0000',
       capitalRegionId: 1,
       population: 10000000,
+      // Не используется этим тестом (RegionEconomyService не читает economyProfile) —
+      // нужен только для валидности типа Country.
+      economyProfile: {
+        taxRate: 0.2,
+        spending: { military: 0.3, research: 0.2, education: 0.2, infrastructure: 0.1, welfare: 0.15, other: 0.05 },
+      },
       economy: {
         gdp: 500000000000,
         treasury: 100000000000,

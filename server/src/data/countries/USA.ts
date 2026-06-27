@@ -18,43 +18,6 @@ export const USA = createCountry({
 
   economyType: EconomyType.Market,
 
-  economy: {
-
-    gdp: 228000,
-
-    treasury: 12000,
-
-    taxRevenue: 2500,
-
-    exportIncome: 1000,
-
-    stateEnterpriseIncome: 50,
-
-    otherIncome: 300,
-
-    militarySpending: 900,
-
-    researchSpending: 250,
-
-    educationSpending: 350,
-
-    infrastructureSpending: 250,
-
-    welfareSpending: 400,
-
-    debtInterest: 50,
-
-    otherExpenses: 250,
-
-    inflation: 1.5,
-
-    unemployment: 3,
-
-    tradeBalance: 5,
-
-    budgetBalance: 1950
-  },
-
   technology: {
 
     domains: {

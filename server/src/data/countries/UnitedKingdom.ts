@@ -17,43 +17,6 @@ export const UK = createCountry({
 
   economyType: EconomyType.Market,
 
-  economy: {
-
-    gdp: 32000,
-
-    treasury: 2500,
-
-    taxRevenue: 450,
-
-    exportIncome: 250,
-
-    stateEnterpriseIncome: 50,
-
-    otherIncome: 50,
-
-    militarySpending: 180,
-
-    researchSpending: 40,
-
-    educationSpending: 70,
-
-    infrastructureSpending: 80,
-
-    welfareSpending: 120,
-
-    debtInterest: 100,
-
-    otherExpenses: 40,
-
-    inflation: 3,
-
-    unemployment: 4,
-
-    tradeBalance: -2,
-
-    budgetBalance: 170
-  },
-
   technology: {
 
     domains: {

@@ -24,6 +24,13 @@ Mandatory rules also live in `/docs`. Inspect the relevant ones before any task:
 * docs/LLM_RULES.md
 * docs/WORLD.md
 * docs/HISTORICAL_ACCURACY.md
+* docs/ECONOMY.md (заготовка, открытые вопросы — см. предупреждение в файле)
+* docs/POLITICS.md (заготовка, открытые вопросы — см. предупреждение в файле)
+* docs/WAR.md (заготовка, открытые вопросы — см. предупреждение в файле)
+* docs/TRADE.md (заготовка, открытые вопросы — см. предупреждение в файле)
+* docs/DIPLOMACY.md (в основном консолидация, частично заготовка — см. предупреждение в файле)
+* docs/MAP_FEATURES.md (заготовка, открытые вопросы — см. предупреждение в файле)
+* docs/SCENARIOS.md (заготовка, открытые вопросы — см. предупреждение в файле)
 * docs/TECH_TREE.md (черновик, не продумано — см. предупреждение в файле)
 * docs/EVENTS.md (черновик, не продумано — см. предупреждение в файле)
 * docs/TODO.md
@@ -197,6 +204,18 @@ estimates from verified data.
 Before committing: run typecheck and tests (and lint where it exists). Do not
 leave broken builds. Do not commit generated files unless repository conventions
 require it.
+
+**Standing authorization — local commits:** the agent may create local commits
+without asking for per-commit confirmation, provided typecheck/tests/lint (per
+above) pass first. This is a durable, advance authorization — it applies in
+every session, not just the one where it was granted. Reason: Repowise tracks
+index staleness as the gap between `indexed_commit` and live `HEAD`
+(`get_overview`'s `stale_warning`); leaving work uncommitted widens that gap
+and makes the index increasingly unreliable, so committing promptly is part of
+keeping the index usable, not optional housekeeping. This authorization covers
+**local commits only** — push (including force-push), history rewrites, and
+any other action that touches shared/remote state still require explicit
+confirmation each time, per the agent's standing safety rules.
 
 For a significant task: read relevant docs → analyze current implementation →
 identify constraints and risks → propose → get approval if architecture changes

@@ -10,24 +10,12 @@ export const GermanyFRA = createCountry({
   capitalRegionId: 0,
   population: 5_000_000,
   economyType: EconomyType.Mixed,
-  economy: {
-    gdp: 2000,
-    treasury: 150,
-    taxRevenue: 40,
-    exportIncome: 15,
-    stateEnterpriseIncome: 5,
-    otherIncome: 5,
-    militarySpending: 0,
-    researchSpending: 5,
-    educationSpending: 10,
-    infrastructureSpending: 15,
-    welfareSpending: 15,
-    debtInterest: 10,
-    otherExpenses: 10,
+  // Оккупированная зона: без вооружённых сил, высокая инфляция/безработица —
+  // см. docs/SCENARIOS.md (страны-фикстуры).
+  economyProfile: {
+    spending: { military: 0 },
     inflation: 25,
     unemployment: 30,
-    tradeBalance: -1,
-    budgetBalance: -15
   },
   technology: {
     domains: { nuclear: 0, rocketry: 0, electronics: 0, aviation: 0, biology: 0, armor: 0, naval: 0, infantry: 0 },
