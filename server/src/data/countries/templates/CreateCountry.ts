@@ -1,5 +1,6 @@
 import { type Country } from "@shared/types/Country";
 import { type EconomyProfile } from "@shared/types/EconomyProfile";
+import { createEmptyEconomyState } from "@shared/constants/createEmptyEconomyState";
 import { ECONOMY_ARCHETYPES } from "./economyArchetypes";
 
 /**
@@ -33,23 +34,10 @@ export function createCountry(input: CountryInput): Country {
     ...input,
     economyProfile,
     economy: {
-      gdp: 0,
-      treasury: 0,
-      taxRevenue: 0,
-      exportIncome: 0,
-      stateEnterpriseIncome: 0,
-      otherIncome: 0,
-      militarySpending: 0,
-      researchSpending: 0,
-      educationSpending: 0,
-      infrastructureSpending: 0,
-      welfareSpending: 0,
-      debtInterest: 0,
-      otherExpenses: 0,
+      ...createEmptyEconomyState(),
       inflation: economyProfile.inflation ?? 0,
       unemployment: economyProfile.unemployment ?? 0,
       tradeBalance: economyProfile.tradeBalance ?? 0,
-      budgetBalance: 0,
     },
   };
 }
